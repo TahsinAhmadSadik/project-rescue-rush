@@ -1,0 +1,29 @@
+0 : Cover Photo
+1 : Main Menu
+	0 : Normal
+	1 : Continue Background
+	2 : New Game Background
+	3 : Leaderboard Background
+	4 : Instruction Background
+	5 : Exit Background
+2 : New Game Name Input
+3 : Leaderboard
+4 : Instruction
+	0 - 7 : Slide Show
+5 : Intro
+	0 - 5 : Slide Show
+6 : Open World
+	0 : Normal
+	1 - 9 : Game Cards
+	10 : Mission Passed
+	11 : Pause Menu
+7 : Burning House
+8 : Cracked Floor
+9 : Door Locked
+10 : Electrified
+11 : Lost in a Basement
+12 : Let There Be Light
+13 : Do You Copy
+14 : Gambler Merchant
+15 : Get Pet Cat
+

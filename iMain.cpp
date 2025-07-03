@@ -28,19 +28,30 @@ bool running = false;
 int direction = 0; //0 up,1 left, 2 down, 3 right
 int last_key_press = 0;
 int hero_count = 0;
+char score_s[6];
+char temp_master1[31];
+char temp_master2[31];
+int temp_high_score1;
+int temp_high_score2;
+bool high_score_set = false;
+bool new_high_score = false;
+int loader_count = 0;
 
-Image cover,menu,newGame,leaderboard,instruction, world, bh, cf, dl, e,lb, ltl, dyc, gm, gpc;
+Image cover,menu,newGame,leaderboard,instruction, world, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,world_map, score_board;
 Image hero, hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9, hero10, hero11, hero12;
 Image pass, fail, dead, valve1, valve2, dart1, dart2, bulb;
 Image marked,cracked,one,two,three,four,five,six,zero;
+Image toolbar,tool1,tool2,tool3,tool4,tool5,tool6,tool7;
 FILE *score_ptr, *save_ptr;
 int menu_bgm, world_bgm;
 bool menu_bgm_status = true;
 bool world_bgm_status = false;
 
 //Level timer
-int level_timer_list[6] = {1000,1000,3000,1000,1000,1000};
+int level_timer_list[6] = {1500,10000,3000,3000,8000,6000};
 int score_list[7] = {500, 2000, 1000, 500, 2000, 1500, 1000};
+int high_score[5];
+char master_rescuer [5][31];
 
 //save/load info
 char name[31] = "";
@@ -52,6 +63,7 @@ int level_timer = 0;
 bool bonus_one = false;
 bool bonus_two = false;
 int score = 0;
+int saved_people = 0;
 
 //Universal Variable
 int focus = 0;
@@ -94,7 +106,7 @@ int tool_map[11][12] = {
     0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0
 }; //0 untouched, 1, marked, 2 stepped
-int step_count = 0;
+int step_count = 1;
 int marker_count = 0;
 int crack_count = 0;
 bool failed = false;
@@ -157,124 +169,228 @@ int dart_random;
 int merchant_score = 0;
 int this_dart = 0;
 
+void loading_text(void)
+{
+    if(loader_count != 0) for(int i=0; i<81; i++) printf("\b");
+    printf("Loading (");
+    if(loader_count%3 == 0) printf("\\) [");
+    else if(loader_count%3 == 1) printf("-) [");
+    else printf("/) [");
+    for(int i=0; i<67; i++)
+    {
+        if(i<=loader_count) printf("|");
+        else printf(".");
+    }
+    printf("]");
+    loader_count++;
+}
+
 void loadImages()
 {
+    loading_text();
     iLoadImage(&cover, "assets/images/cover.png");
     iScaleImage(&cover, ratio);
+    loading_text();
     iLoadImage(&menu, "assets/images/main_menu.png");
     iScaleImage(&menu, ratio);
+    loading_text();
     iLoadImage(&newGame, "assets/images/new_game.png");
     iScaleImage(&newGame, ratio);
+    loading_text();
     iLoadImage(&leaderboard, "assets/images/leaderboard.png");
     iScaleImage(&leaderboard, ratio);
+    loading_text();
     iLoadImage(&instruction, "assets/images/instruction.png");
     iScaleImage(&instruction, ratio);
+    loading_text();
     iLoadImage(&world, "assets/images/world.png");
     iScaleImage(&world, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&score_board, "assets/images/score.png");
+    iScaleImage(&score_board , ratio);
+    loading_text();
     //Hero
     iLoadImage(&hero1, "assets/images/effects/hero1.png");
     iScaleImage(&hero1, ratio);
+    loading_text();
     iLoadImage(&hero2, "assets/images/effects/hero2.png");
     iScaleImage(&hero2, ratio);
+    loading_text();
     iLoadImage(&hero3, "assets/images/effects/hero3.png");
     iScaleImage(&hero3, ratio);
+    loading_text();
     iLoadImage(&hero4, "assets/images/effects/hero4.png");
     iScaleImage(&hero4, ratio);
+    loading_text();
     iLoadImage(&hero5, "assets/images/effects/hero5.png");
     iScaleImage(&hero5, ratio);
+    loading_text();
     iLoadImage(&hero6, "assets/images/effects/hero6.png");
     iScaleImage(&hero6, ratio);
+    loading_text();
     iLoadImage(&hero7, "assets/images/effects/hero7.png");
     iScaleImage(&hero7, ratio);
+    loading_text();
     iLoadImage(&hero8, "assets/images/effects/hero8.png");
     iScaleImage(&hero8, ratio);
+    loading_text();
     iLoadImage(&hero9, "assets/images/effects/hero9.png");
     iScaleImage(&hero9, ratio);
+    loading_text();
     iLoadImage(&hero10, "assets/images/effects/hero10.png");
     iScaleImage(&hero10, ratio);
+    loading_text();
     iLoadImage(&hero11, "assets/images/effects/hero11.png");
     iScaleImage(&hero11, ratio);
+    loading_text();
     iLoadImage(&hero12, "assets/images/effects/hero12.png");
     iScaleImage(&hero12, ratio);
+    loading_text();
     //scene
     iLoadImage(&bh, "assets/images/bh.png");
     iScaleImage(&bh, ratio);
+    loading_text();
     iLoadImage(&cf, "assets/images/cf.png");
     iScaleImage(&cf, ratio);
+    loading_text();
     iLoadImage(&dl, "assets/images/dl.png");
     iScaleImage(&dl, ratio);
+    loading_text();
     iLoadImage(&e, "assets/images/e.png");
     iScaleImage(&e, ratio);
+    loading_text();
     iLoadImage(&lb, "assets/images/lb.png");
     iScaleImage(&lb, ratio);
+    loading_text();
     iLoadImage(&ltl, "assets/images/ltl.png");
     iScaleImage(&ltl, ratio);
+    loading_text();
     iLoadImage(&dyc, "assets/images/dyc.png");
     iScaleImage(&dyc, ratio);
+    loading_text();
     iLoadImage(&gm, "assets/images/gm.png");
     iScaleImage(&gm, ratio);
+    loading_text();
     iLoadImage(&gpc, "assets/images/gpc.png");
     iScaleImage(&gpc, ratio);
+    loading_text();
+    iLoadImage(&world_map, "assets/images/map.png");
+    iScaleImage(&world_map, ratio);
+    loading_text();
     //Door Locked Images (Scene 09 : Level 03)
     iLoadImage(&p1, "assets/images/effects/p1.png");
     iScaleImage(&p1, ratio);
+    loading_text();
     iLoadImage(&p2, "assets/images/effects/p2.png");
     iScaleImage(&p2, ratio);
+    loading_text();
     iLoadImage(&p3, "assets/images/effects/p3.png");
     iScaleImage(&p3, ratio);
+    loading_text();
     iLoadImage(&p4, "assets/images/effects/p4.png");
     iScaleImage(&p4, ratio);
+    loading_text();
     iLoadImage(&p5, "assets/images/effects/p5.png");
     iScaleImage(&p5, ratio);
+    loading_text();
     iLoadImage(&p6, "assets/images/effects/p6.png");
     iScaleImage(&p6, ratio);
+    loading_text();
     iLoadImage(&p7, "assets/images/effects/p7.png");
     iScaleImage(&p7, ratio);
+    loading_text();
     iLoadImage(&p8, "assets/images/effects/p8.png");
     iScaleImage(&p8, ratio);
+    loading_text();
     iLoadImage(&p9, "assets/images/effects/p9.png");
     iScaleImage(&p9, ratio);
+    loading_text();
     iLoadImage(&p10, "assets/images/effects/p10.png");
     iScaleImage(&p10, ratio);
+    loading_text();
     iLoadImage(&p11, "assets/images/effects/p11.png");
     iScaleImage(&p11, ratio);
+    loading_text();
     iLoadImage(&p12, "assets/images/effects/p12.png");
     iScaleImage(&p12, ratio);
+    loading_text();
     //Effects
     iLoadImage(&pass, "assets/images/effects/pass.png");
     iScaleImage(&pass, ratio);
+    loading_text();
     iLoadImage(&fail, "assets/images/effects/fail.png");
     iScaleImage(&fail, ratio);
+    loading_text();
     iLoadImage(&dead, "assets/images/effects/dead.png");
     iScaleImage(&dead, ratio);
+    loading_text();
     iLoadImage(&valve1, "assets/images/effects/valve1.png");
     iScaleImage(&valve1, ratio);
+    loading_text();
     iLoadImage(&valve2, "assets/images/effects/valve2.png");
     iScaleImage(&valve2, ratio);
+    loading_text();
     iLoadImage(&dart1, "assets/images/effects/dart1.png");
     iScaleImage(&dart1, ratio);
+    loading_text();
     iLoadImage(&dart2, "assets/images/effects/dart2.png");
     iScaleImage(&dart2, ratio);
+    loading_text();
     iLoadImage(&marked, "assets/images/effects/marked.png");
     iScaleImage(&marked, ratio);
+    loading_text();
     iLoadImage(&cracked, "assets/images/effects/cracked.png");
     iScaleImage(&cracked, ratio);
+    loading_text();
     iLoadImage(&one, "assets/images/effects/1.png");
     iScaleImage(&one, ratio);
+    loading_text();
     iLoadImage(&two, "assets/images/effects/2.png");
     iScaleImage(&two, ratio);
+    loading_text();
     iLoadImage(&three, "assets/images/effects/3.png");
     iScaleImage(&three, ratio);
+    loading_text();
     iLoadImage(&four, "assets/images/effects/4.png");
     iScaleImage(&four, ratio);
+    loading_text();
     iLoadImage(&five, "assets/images/effects/5.png");
     iScaleImage(&five, ratio);
+    loading_text();
     iLoadImage(&six, "assets/images/effects/6.png");
     iScaleImage(&six, ratio);
+    loading_text();
     iLoadImage(&zero, "assets/images/effects/0.png");
     iScaleImage(&zero, ratio);
+    loading_text();
     iLoadImage(&bulb, "assets/images/effects/bulb.png");
     iScaleImage(&bulb, ratio);
+    loading_text();
+    iLoadImage(&toolbar, "assets/images/effects/toolbar.png");
+    iScaleImage(&toolbar, ratio);
+    loading_text();
+    iLoadImage(&tool1, "assets/images/effects/tool1.png");
+    iScaleImage(&tool1, ratio);
+    loading_text();
+    iLoadImage(&tool2, "assets/images/effects/tool2.png");
+    iScaleImage(&tool2, ratio);
+    loading_text();
+    iLoadImage(&tool3, "assets/images/effects/tool3.png");
+    iScaleImage(&tool3, ratio);
+    loading_text();
+    iLoadImage(&tool4, "assets/images/effects/tool4.png");
+    iScaleImage(&tool4, ratio);
+    loading_text();
+    iLoadImage(&tool5, "assets/images/effects/tool5.png");
+    iScaleImage(&tool5, ratio);
+    loading_text();
+    iLoadImage(&tool6, "assets/images/effects/tool6.png");
+    iScaleImage(&tool6, ratio);
+    loading_text();
+    iLoadImage(&tool7, "assets/images/effects/tool7.png");
+    iScaleImage(&tool7, ratio);
+    loading_text();
+    printf("\n");
 }
 
 void saveGame(void)
@@ -288,18 +404,21 @@ void saveGame(void)
     else fprintf(save_ptr, "TRUE\n");
     if(bonus_two == false) fprintf(save_ptr, "FALSE\n");
     else fprintf(save_ptr, "TRUE\n");
+    fprintf(save_ptr, "%d\n",saved_people);
     fprintf(save_ptr, "%d\n",score);
+    fclose(save_ptr);
 }
 
 
 void newGameInit(void)
 {
     printf("New Game");
-    save = false;
+    save = true;
     current_level = 1;
     level_timer = level_timer_list[0];
     bonus_one = false;
     bonus_two = false;
+    saved_people = 0;
     score = 0;
     saveGame();
     scene = 5;
@@ -630,7 +749,7 @@ void get_score(void)
     temp_score /= 10;
     current_score[7] = temp_score%10 + '0';
     temp_score /= 10;
-    iText(20*ratio, 1040*ratio, current_score, GLUT_BITMAP_HELVETICA_18);
+    iTextAdvanced(20*ratio, 1030*ratio, current_score,0.2, 2);
 }
 
 
@@ -756,7 +875,8 @@ void iDraw()
             iSetColor(255,255,255);
             iTextBold(400*ratio, 740*ratio, "Movement", GLUT_BITMAP_TIMES_ROMAN_24);
             iText(400*ratio, 680*ratio, "In the open world, you can move around by pressing \"W\", \"A\", \"S\",", GLUT_BITMAP_HELVETICA_18);
-            iText(400*ratio, 650*ratio, "\"D\".", GLUT_BITMAP_HELVETICA_18);
+            iText(400*ratio, 650*ratio, "\"D\". Press \"Shift\" and one of those keys to sprint. You can also", GLUT_BITMAP_HELVETICA_18);
+            iText(400*ratio, 620*ratio, "use arrow keys for movement.", GLUT_BITMAP_HELVETICA_18);
             break;
         case 2:
             iSetColor(255,255,255);
@@ -914,7 +1034,7 @@ void iDraw()
         //iText(20,30,x_pos,GLUT_BITMAP_HELVETICA_18);
         //iText(20,10,y_pos,GLUT_BITMAP_HELVETICA_18);
 
-        if(sub_scene >= 1 && sub_scene <= 9)
+        if((sub_scene >= 1 && sub_scene <= 9) || sub_scene == 14)
         {
         iSetColor(255,255,255);
         iFilledRectangle(10*ratio,10*ratio,60*ratio, 40*ratio);
@@ -933,21 +1053,48 @@ void iDraw()
             get_score();
             if(current_ineteraction != -1)
             {
-            iSetColor(255,255,255);
-            iFilledRectangle(10*ratio,10*ratio,40*ratio, 40*ratio);
-            iSetColor(0,0,0);
-            iTextBold(20*ratio,20*ratio, "Q", GLUT_BITMAP_HELVETICA_18);
-            iText(70*ratio,20*ratio, "Details", GLUT_BITMAP_HELVETICA_18);
+                iSetColor(255,255,255);
+                iFilledRectangle(10*ratio,10*ratio,40*ratio, 40*ratio);
+                iSetColor(0,0,0);
+                iTextBold(20*ratio,20*ratio, "Q", GLUT_BITMAP_HELVETICA_18);
+                iText(70*ratio,20*ratio, "Details", GLUT_BITMAP_HELVETICA_18);
+            }
+            else if(bonus_one == true)
+            {
+                iSetColor(255,255,255);
+                iFilledRectangle(10*ratio,10*ratio,40*ratio, 40*ratio);
+                iSetColor(0,0,0);
+                iTextBold(20*ratio,20*ratio, "M", GLUT_BITMAP_HELVETICA_18);
+                iText(70*ratio,20*ratio, "Open Map", GLUT_BITMAP_HELVETICA_18);
             }
 
             if(current_ineteraction == current_level || current_ineteraction >= 8)
             {
-            iSetColor(255,255,255);
-            iFilledRectangle(150*ratio,10*ratio,35*ratio, 40*ratio);
-            iSetColor(0,0,0);
-            iTextBold(160*ratio,20*ratio, "E", GLUT_BITMAP_HELVETICA_18);
-            iText(200*ratio,20*ratio, "Interact", GLUT_BITMAP_HELVETICA_18);
+                iSetColor(255,255,255);
+                iFilledRectangle(150*ratio,10*ratio,35*ratio, 40*ratio);
+                iSetColor(0,0,0);
+                iTextBold(160*ratio,20*ratio, "E", GLUT_BITMAP_HELVETICA_18);
+                iText(200*ratio,20*ratio, "Interact", GLUT_BITMAP_HELVETICA_18);
             }
+
+            //toolbar
+            iShowLoadedImage(623.5*ratio, 20*ratio, &toolbar);
+            switch(current_level)
+            {
+            case 7:
+                iShowLoadedImage(1108.5*ratio, 34*ratio, &tool6);
+            case 6:
+                iShowLoadedImage(1014.5*ratio, 34*ratio, &tool5);
+            case 5:
+                iShowLoadedImage(920.5*ratio, 34*ratio, &tool4);
+            case 4:
+                iShowLoadedImage(826.5*ratio, 34*ratio, &tool3);
+            case 3:
+                iShowLoadedImage(732.5*ratio, 34*ratio, &tool2);
+            case 2:
+                iShowLoadedImage(638.5*ratio, 34*ratio, &tool1);
+            }
+            if(bonus_one == true) iShowLoadedImage(1202.5*ratio, 34*ratio, &tool7);
             break;
         case 1:
             if(card_toggle == false) iShowImage(710*ratio, 390*ratio, "assets/images/cards/bh1.png");
@@ -1018,7 +1165,19 @@ void iDraw()
             if( counter != 600) counter++;
             else sub_scene = 0, counter = 0;
             break;
-
+        case 13:
+            iSetTransparentColor(0,0,0,0.3);
+            iFilledRectangle(0,0,1920*ratio, 1080*ratio);
+            iSetColor(255,255,255);
+            iFilledRectangle(10*ratio,10*ratio,40*ratio, 40*ratio);
+            iSetColor(0,0,0);
+            iTextBold(20*ratio,20*ratio, "M", GLUT_BITMAP_HELVETICA_18);
+            iText(70*ratio,20*ratio, "Close Map", GLUT_BITMAP_HELVETICA_18);
+            iShowLoadedImage(249*ratio,137.4*ratio,&world_map);
+            break;
+        case 14:
+            iShowImage(710*ratio, 390*ratio, "assets/images/cards/hh.png");
+            break;
         }
         break;
     case 7:
@@ -1026,13 +1185,16 @@ void iDraw()
         iShowLoadedImage(0,0,&bh);
 
         //Hover Effect
-        iSetColor(255,255,255);
-        iSetLineWidth(2);
-        if(sub_focus == 1) iRectangle(866*ratio,16*ratio,100*ratio,1048*ratio);
-        else if(sub_focus == 2) iRectangle(1081*ratio,16*ratio,100*ratio,1048*ratio);
-        else if(sub_focus == 3) iRectangle(1296*ratio,16*ratio,100*ratio,1048*ratio);
-        else if(sub_focus == 4) iRectangle(1511*ratio,16*ratio,100*ratio,1048*ratio);
-        else if(sub_focus == 5) iRectangle(1726*ratio,16*ratio,100*ratio,1048*ratio);
+        if(win == false)
+        {
+            iSetColor(255,255,255);
+            iSetLineWidth(2);
+            if(sub_focus == 1) iRectangle(866*ratio,16*ratio,100*ratio,1048*ratio);
+            else if(sub_focus == 2) iRectangle(1081*ratio,16*ratio,100*ratio,1048*ratio);
+            else if(sub_focus == 3) iRectangle(1296*ratio,16*ratio,100*ratio,1048*ratio);
+            else if(sub_focus == 4) iRectangle(1511*ratio,16*ratio,100*ratio,1048*ratio);
+            else if(sub_focus == 5) iRectangle(1726*ratio,16*ratio,100*ratio,1048*ratio);
+        }
 
         //Joints
         iSetColor(142,21,21);
@@ -1062,7 +1224,7 @@ void iDraw()
         }
 
         //Rotate
-        if(rotate_count != 0)
+        if(rotate_count != 0 && win == false)
         {
             if(rotate_count%10 == 0) (sub_rotate_count == 1) ? sub_rotate_count = 0 : sub_rotate_count = 1;
 
@@ -1113,11 +1275,10 @@ void iDraw()
                 sub_scene = 10;
                 win = false;
                 score += score_list[current_level-1];
-                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1]));
-                //score += added_score;
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
                 current_level++;
                 level_timer = level_timer_list[current_level-1];
-                //saveGame();
+                saveGame();
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
@@ -1150,11 +1311,14 @@ void iDraw()
         //Cracked Floor
         iShowLoadedImage(0,0,&cf);
         //Hover
-        iSetColor(0,0,0);
-        iSetLineWidth(2);
-        if(sub_focus == 133) iRectangle(317*ratio, 343*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 134) iRectangle(429*ratio, 343*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus != 0) iSetColor(255,255,255), iRectangle((796+((sub_focus-1)%12)*92)*ratio, (968-((sub_focus-1)/12)*94)*ratio, 80*ratio, 80*ratio);
+        if(win == false && failed == false)
+        {
+            iSetColor(0,0,0);
+            iSetLineWidth(2);
+            if(sub_focus == 133) iRectangle(317*ratio, 343*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 134) iRectangle(429*ratio, 343*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus != 0) iSetColor(255,255,255), iRectangle((796+((sub_focus-1)%12)*92)*ratio, (968-((sub_focus-1)/12)*94)*ratio, 80*ratio, 80*ratio);
+        }
 
         //Tools
         iSetColor(0,0,0);
@@ -1162,9 +1326,12 @@ void iDraw()
         else iRectangle(429*ratio, 343*ratio, 80*ratio, 80*ratio);
 
         //Click Handle
-        if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == true && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 2, (floor_map[(focus-1)/12][(focus-1)%12] == -1) ? iPlaySound("assets/sounds/crack.wav", false, 100),crack_count++ : iPlaySound("assets/sounds/step.wav", false, 100), step_count++;
-        else if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 1, iPlaySound("assets/sounds/mark.wav", false, 100), marker_count++;
-        else if(tool_map[(focus-1)/12][(focus-1)%12] == 1 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 0, iPlaySound("assets/sounds/mark.wav", false, 100), marker_count--;
+        if(win == false && failed == false)
+        {
+            if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == true && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 2, (floor_map[(focus-1)/12][(focus-1)%12] == -1) ? iPlaySound("assets/sounds/crack.wav", false, 100),crack_count++ : iPlaySound("assets/sounds/step.wav", false, 100), step_count++;
+            else if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 1, iPlaySound("assets/sounds/mark.wav", false, 100), marker_count++;
+            else if(tool_map[(focus-1)/12][(focus-1)%12] == 1 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 0, iPlaySound("assets/sounds/mark.wav", false, 100), marker_count--;
+        }
         focus = 0;
 
         //Floor Map
@@ -1208,7 +1375,7 @@ void iDraw()
             }
         }
 
-        if(step_count + marker_count + crack_count == 131) win = true;
+        if(step_count + marker_count + crack_count == 132) win = true;
         else if(crack_count == 3) failed = true;
 
         if(win == true)
@@ -1222,11 +1389,10 @@ void iDraw()
                 sub_scene = 10;
                 win = false;
                 score += score_list[current_level-1];
-                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1]));
-                //score += added_score;
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
                 current_level++;
                 level_timer = level_timer_list[current_level-1];
-                //saveGame();
+                saveGame();
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
@@ -1243,11 +1409,11 @@ void iDraw()
                 scene = 6;
                 sub_scene = 12;
                 failed = false;
-                step_count = 0;
+                step_count = 1;
                 marker_count = 0;
                 crack_count = 0;
                 tool = false;
-                level_timer = level_timer_list[current_level-1];
+                //level_timer = level_timer_list[current_level-1];
                 //saveGame();
                 focus = 0;
                 sub_focus = 0;
@@ -1283,7 +1449,7 @@ void iDraw()
         //locked door
         iShowLoadedImage(0,0,&dl);
         //swapping cards
-        if(prev_focus != focus && prev_focus != 0)
+        if(prev_focus != focus && prev_focus != 0 && win == false)
         {
             iPlaySound("assets/sounds/paper.wav", false, 100);
             int t = pieces[prev_focus-1];
@@ -1305,7 +1471,7 @@ void iDraw()
         drawPiece(pieces[9], 1069*ratio, 131*ratio);
         drawPiece(pieces[10], 1341*ratio, 131*ratio);
         drawPiece(pieces[11], 1613*ratio, 131*ratio);
-        pieceFocus();
+        if(win == false) pieceFocus();
         //check for win
         win = true;
         for(int i=1; i<=12; i++)
@@ -1328,11 +1494,10 @@ void iDraw()
                 sub_scene = 10;
                 win = false;
                 score += score_list[current_level-1];
-                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1]));
-                //score += added_score;
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
                 current_level++;
                 level_timer = level_timer_list[current_level-1];
-                //saveGame();
+                saveGame();
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
@@ -1363,29 +1528,119 @@ void iDraw()
         //printf("%d ", level_timer);
         break;
     case 10:
+        //Electrified
         iShowLoadedImage(0,0,&e);
+
+        if(win == true)
+        {
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            else if(win_counter != 0) win_counter--;
+            else
+            {
+                //winning
+                scene = 6;
+                sub_scene = 10;
+                win = false;
+                score += score_list[current_level-1];
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
+                current_level++;
+                level_timer = level_timer_list[current_level-1];
+                saveGame();
+                focus = 0;
+                sub_focus = 0;
+                prev_focus = 0;
+                win_counter = 300;
+            }
+        }
+        else
+        {
+            //timer decreases
+            if(win == false && level_timer > 0) level_timer--;
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+
+        }
+
+        //timer bar render
+        iSetColor(97,59,20);
+        iFilledRectangle(171*ratio, 192*ratio, 563*ratio, 10*ratio);
+        iSetColor(0,0,0);
+        iFilledRectangle(171*ratio, 192*ratio, 563*(level_timer/(double)level_timer_list[current_level-1])*ratio, 10*ratio);
+        if(level_timer == 0)
+        {
+            iShowLoadedImage(94*ratio, 154*ratio, &dead);
+            iSetColor(161,98,34);
+            iFilledRectangle(171*ratio, 143*ratio, 563*ratio, 39*ratio);
+            iSetColor(0,0,0);
+            iText(175*ratio, 160*ratio, "The person is dead :(", GLUT_BITMAP_HELVETICA_18);
+        }
         break;
     case 11:
+        //Lost in a Basement
         iShowLoadedImage(0,0,&lb);
+
+        if(win == true)
+        {
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            else if(win_counter != 0) win_counter--;
+            else
+            {
+                //winning
+                scene = 6;
+                sub_scene = 10;
+                win = false;
+                score += score_list[current_level-1];
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
+                current_level++;
+                level_timer = level_timer_list[current_level-1];
+                saveGame();
+                focus = 0;
+                sub_focus = 0;
+                prev_focus = 0;
+                win_counter = 300;
+            }
+        }
+        else
+        {
+            //timer decreases
+            if(win == false && level_timer > 0) level_timer--;
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+
+        }
+
+        //timer bar render
+        iSetColor(97,59,20);
+        iFilledRectangle(171*ratio, 192*ratio, 563*ratio, 10*ratio);
+        iSetColor(0,0,0);
+        iFilledRectangle(171*ratio, 192*ratio, 563*(level_timer/(double)level_timer_list[current_level-1])*ratio, 10*ratio);
+        if(level_timer == 0)
+        {
+            iShowLoadedImage(94*ratio, 154*ratio, &dead);
+            iSetColor(161,98,34);
+            iFilledRectangle(171*ratio, 143*ratio, 563*ratio, 39*ratio);
+            iSetColor(0,0,0);
+            iText(175*ratio, 160*ratio, "The person is dead :(", GLUT_BITMAP_HELVETICA_18);
+        }
         break;
     case 12:
         //Let There be Light
         iShowLoadedImage(0,0,&ltl);
 
         //Hover
-        iSetColor(0,0,0);
-        iSetLineWidth(2);
-        if(sub_focus == 133) iRectangle(94*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 134) iRectangle(186*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 135) iRectangle(278*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 136) iRectangle(370*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 137) iRectangle(462*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 138) iRectangle(554*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus == 139) iRectangle(646*ratio, 552*ratio, 80*ratio, 80*ratio);
-        else if(sub_focus != 0) iSetColor(255,255,255), iRectangle((796+((sub_focus-1)%12)*92)*ratio, (968-((sub_focus-1)/12)*94)*ratio, 80*ratio, 80*ratio);
-
+        if(win == false)
+        {
+            iSetColor(0,0,0);
+            iSetLineWidth(2);
+            if(sub_focus == 133) iRectangle(94*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 134) iRectangle(186*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 135) iRectangle(278*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 136) iRectangle(370*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 137) iRectangle(462*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 138) iRectangle(554*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus == 139) iRectangle(646*ratio, 552*ratio, 80*ratio, 80*ratio);
+            else if(sub_focus != 0) iSetColor(255,255,255), iRectangle((796+((sub_focus-1)%12)*92)*ratio, (968-((sub_focus-1)/12)*94)*ratio, 80*ratio, 80*ratio);
+        }
         //Click
-        if(focus != 0) last_bulb_idx = bulb_idx, bulb_idx = -1;
+        if(focus != 0 && win == false) last_bulb_idx = bulb_idx, bulb_idx = -1;
 
         if(focus != 0)
         {
@@ -1422,7 +1677,7 @@ void iDraw()
             bulb_idx = -1;
             last_bulb_idx = -1;
         }
-        else if(bulb_idx != -1)
+        else if(bulb_idx != -1 && win == false)
         {
             iSetColor(0,0,0);
             switch(bulb_pos[bulb_idx][0])
@@ -1513,11 +1768,10 @@ void iDraw()
                 sub_scene = 10;
                 win = false;
                 score += score_list[current_level-1];
-                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1]));
-                //score += added_score;
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
                 current_level++;
                 level_timer = level_timer_list[current_level-1];
-                //saveGame();
+                saveGame();
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
@@ -1560,18 +1814,20 @@ void iDraw()
         if(radio_button[4] == 1) iFilledRectangle(1385*ratio, 442*ratio,45*ratio, 21*ratio);
         if(radio_button[5] == 1) iFilledRectangle(1453*ratio, 442*ratio,45*ratio, 21*ratio);
 
-        iSetColor(255,255,255);
-        iSetLineWidth(2);
-        //Hover Knobs & Buttons
-        if(sub_focus == 1) iCircle(1005.6*ratio, 441.5*ratio, 40.5*ratio, 100);
-        else if(sub_focus == 2) iCircle(1628.5*ratio, 441.5*ratio, 40.5*ratio, 100);
-        else if(sub_focus == 3) iRectangle(1112*ratio, 442*ratio,45*ratio, 21*ratio);
-        else if(sub_focus == 4) iRectangle(1180*ratio, 442*ratio,45*ratio, 21*ratio);
-        else if(sub_focus == 5) iRectangle(1248*ratio, 442*ratio,45*ratio, 21*ratio);
-        else if(sub_focus == 6) iRectangle(1316*ratio, 442*ratio,45*ratio, 21*ratio);
-        else if(sub_focus == 7) iRectangle(1385*ratio, 442*ratio,45*ratio, 21*ratio);
-        else if(sub_focus == 8) iRectangle(1453*ratio, 442*ratio,45*ratio, 21*ratio);
-
+        if(win == false)
+        {
+            iSetColor(255,255,255);
+            iSetLineWidth(2);
+            //Hover Knobs & Buttons
+            if(sub_focus == 1) iCircle(1005.6*ratio, 441.5*ratio, 40.5*ratio, 100);
+            else if(sub_focus == 2) iCircle(1628.5*ratio, 441.5*ratio, 40.5*ratio, 100);
+            else if(sub_focus == 3) iRectangle(1112*ratio, 442*ratio,45*ratio, 21*ratio);
+            else if(sub_focus == 4) iRectangle(1180*ratio, 442*ratio,45*ratio, 21*ratio);
+            else if(sub_focus == 5) iRectangle(1248*ratio, 442*ratio,45*ratio, 21*ratio);
+            else if(sub_focus == 6) iRectangle(1316*ratio, 442*ratio,45*ratio, 21*ratio);
+            else if(sub_focus == 7) iRectangle(1385*ratio, 442*ratio,45*ratio, 21*ratio);
+            else if(sub_focus == 8) iRectangle(1453*ratio, 442*ratio,45*ratio, 21*ratio);
+        }
         //Dots
         iSetColor(255,255, 255);
         //left knob
@@ -1621,18 +1877,15 @@ void iDraw()
             else
             {
                 //winning
-                scene = 6;
-                sub_scene = 10;
+                scene = 16;
+                sub_scene = 0;
                 win = false;
                 score += score_list[current_level-1];
-                current_level++;
-                level_timer = level_timer_list[current_level-1];
-                //saveGame();
+                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
+                saveGame();
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
-
                 //Game Finish
             }
         }
@@ -1756,6 +2009,105 @@ void iDraw()
         break;
     case 15:
         iShowLoadedImage(0,0,&gpc);
+        break;
+    case 16:
+        iStopSound(menu_bgm);
+        iStopSound(world_bgm);
+        menu_bgm_status = false;
+        world_bgm_status = false;
+        iSetColor(0,0,0);
+        iFilledRectangle(0,0,1920*ratio, 1080*ratio);
+        iSetColor(255,255,255);
+        switch(sub_scene)
+        {
+        case 0:
+            iTextBold(400*ratio, 650*ratio, "A powerful cyclone struck a remote village late last night, unleashing fierce winds and torrential rains", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "that lasted for hours. The storm made landfall without much warning, catching many residents unprepared.", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "Thatched houses were torn from their foundations, trees were uprooted, and power lines lay tangled on the", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "ground. The narrow dirt roads  that connect the village to nearby towns were flooded and rendered ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 530*ratio, "impassable, effectively cutting off all outside communication and aid.", GLUT_BITMAP_TIMES_ROMAN_24);
+            break;
+        case 1:
+            iTextBold(400*ratio, 650*ratio, "The destruction left behind is vast and heartbreaking. Farmlands that had been ready for harvest are now", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "submerged under water, and livestock have either perished or gone missing. The local school building, ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "which had served as an emergency shelter, collapsed under the pressure of the winds. Survivors are now", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "left without food, clean water, or shelter, as rescue efforts struggle to reach the isolated area. The ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 530*ratio, "once peaceful village now lies in ruins, its people facing an uncertain and difficult path to recovery.", GLUT_BITMAP_TIMES_ROMAN_24);
+            break;
+        case 2:
+            iTextBold(400*ratio, 650*ratio, "Amid the chaos and devastation, a brave figure emerged. Though only a man with no special powers, he", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "braved the storm’s fury to guide stranded villagers to safety and rescue the injured from beneath ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "collapsed homes.  With nothing but courage in his heart, he became the unlikely hero his village ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "desperately needed. ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 530*ratio, "Hail to our HERO. Hail to", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(735*ratio, 530*ratio, name , GLUT_BITMAP_TIMES_ROMAN_24);
+            break;
+        }
+        iText(850*ratio, 400*ratio, "Press \"Space\" to continue.", GLUT_BITMAP_HELVETICA_18);
+        break;
+    case 17:
+        if(high_score_set == false)
+        {
+                        //Save Game Delete
+            save = false;
+            save_ptr = fopen("saves/save.txt","w");
+            fprintf(save_ptr, "NO\n");
+            fclose(save_ptr);
+            //High Score Setup
+            score_ptr = fopen("saves/score.txt", "r");
+            for(int i=0; i<5; i++) fscanf(score_ptr,"%s\n", &master_rescuer[i]),fscanf(score_ptr,"%d\n", &high_score[i]);
+            fclose(score_ptr);
+            fopen("saves/score.txt", "w");
+            temp_high_score1 = score;
+            strcpy(temp_master1, name);
+            for(int i=0; i<5; i++)
+            {
+                if(high_score[i] < temp_high_score1)
+                {
+                    new_high_score = true;
+                    temp_high_score2 = high_score[i];
+                    strcpy(temp_master2, master_rescuer[i]);
+                    high_score[i] = temp_high_score1;
+                    strcpy(master_rescuer[i], temp_master1);
+                    temp_high_score1 = temp_high_score2;
+                    strcpy(temp_master1, temp_master2);
+                }
+                fprintf(score_ptr,"%s\n", master_rescuer[i]);
+                fprintf(score_ptr,"%d\n", high_score[i]);
+            }
+            fclose(score_ptr);
+            for(int i=0; i<5; i++) printf("%s - %d\n", master_rescuer[i], high_score[i]);
+            printf("Game Finished. Congratulations.\n");
+            high_score_set = true;
+        }
+
+        //Score Board
+        iShowLoadedImage(0,0,&score_board);
+        iSetColor(176,105,34);
+        if(new_high_score == true) iTextAdvanced(792*ratio, 855*ratio, "New High Score !!!", 0.2,2.5);
+        iSetColor(0,0,0);
+        iTextAdvanced(610*ratio,601*ratio,"Rescue Mission", 0.2, 2.5);
+        iTextAdvanced(610*ratio,521*ratio,"People Rescued", 0.2, 2.5);
+        iTextAdvanced(610*ratio,441*ratio,"Bonus Mission", 0.2, 2.5);
+        iTextAdvanced(610*ratio,361*ratio,"Total Score", 0.2, 2.5);
+        iTextAdvanced(1247*ratio,601*ratio,"7/7", 0.2, 3);
+        score_s[0] = saved_people + '0';
+        score_s[1] = '\0';
+        iTextAdvanced(1247*ratio,521*ratio,score_s, 0.2, 3);
+        iTextAdvanced(1270*ratio,521*ratio,"/6", 0.2, 3);
+        score_s[0] = '0';
+        if(bonus_one == true) score_s[0]++;
+        if(bonus_two == true) score_s[0]++;
+        score_s[1] = '\0';
+        iTextAdvanced(1247*ratio,441*ratio,score_s, 0.2, 3);
+        iTextAdvanced(1270*ratio,441*ratio,"/2", 0.2, 3);
+        score_s[0] = (score/10000)%10 + '0';
+        score_s[1] = (score/1000)%10 + '0';
+        score_s[2] = (score/100)%10 + '0';
+        score_s[3] = (score/10)%10 + '0';
+        score_s[4] = (score/1)%10 + '0';
+        score_s[5] = '\0';
+        iTextAdvanced(1210*ratio,361*ratio,score_s, 0.2, 3);
         break;
     }
 }
@@ -1899,7 +2251,7 @@ void iMouse(int button, int state, int mx, int my)
         case 1:
             if(mx > 480*ratio && mx < 792.5*ratio)
             {
-                if(my > 745*ratio && my < 795*ratio) iPlaySound("assets/sounds/click.wav", false, 100); //continue
+                if(my > 745*ratio && my < 795*ratio) iPlaySound("assets/sounds/click.wav", false, 100),(save == true) ? scene = 6 : scene = 1,sub_scene = 0; //continue
                 else if(my > 685*ratio && my < 735*ratio) iPlaySound("assets/sounds/click.wav", false, 100), name_cursor = strlen(name), scene = 2, sub_scene = 0; //New game
                 else if(my > 625*ratio && my < 675*ratio) iPlaySound("assets/sounds/click.wav", false, 100), scene = 3, sub_scene = 0; //Leaderboard
                 else if(my > 565*ratio && my < 615*ratio) iPlaySound("assets/sounds/click.wav", false, 100), scene = 4, sub_scene = 0; //Instruction
@@ -2009,7 +2361,7 @@ void iMouse(int button, int state, int mx, int my)
             break;
         case 13:
             //Do You Copy
-            if(my > 401*ratio && my < 482*ratio)
+            if(my > 401*ratio && my < 482*ratio && win == false)
             {
                 if(mx > 965.1*ratio && mx < 1046.1*ratio) radio_knob1 = (radio_knob1+1)%8, iPlaySound("assets/sounds/radio.wav", false, 100);
                 else if(mx > 1588*ratio && mx < 1669*ratio) radio_knob2 = (radio_knob2+1)%8, iPlaySound("assets/sounds/radio.wav", false, 100);
@@ -2070,17 +2422,98 @@ void iKeyboard(unsigned char key)
         }
         break;
     case 6:
-        if(key == 'w'&& checkMove(x_position,y_position - move_speed)) y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
-        else if(key == 's' && checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
-        else if(key == 'd' && checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
-        else if(key == 'a' && checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
-        else if(key == 'q' && current_ineteraction != -1) sub_scene = current_ineteraction, card_toggle = false, iPlaySound("assets/sounds/click.wav", false, 100);
-        else if(key == 'e' && current_ineteraction > 0) scene = current_ineteraction + 6,sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
+        if(key == 'w')
+        {
+            move_speed = 10;
+             if(checkMove(x_position,y_position - move_speed))y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
+        }
+        else if(key == 's')
+        {
+            move_speed = 10;
+            if(checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
+        }
+        else if(key == 'd')
+        {
+            move_speed = 10;
+            if(checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
+        }
+        else if(key == 'a')
+        {
+            move_speed = 10;
+            if(checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
+        }
+        else if(key == 'W')
+        {
+            move_speed = 20;
+             if(checkMove(x_position,y_position - move_speed))y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
+        }
+        else if(key == 'S')
+        {
+            move_speed = 20;
+            if(checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
+        }
+        else if(key == 'D')
+        {
+            move_speed = 20;
+            if(checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
+        }
+        else if(key == 'A')
+        {
+            move_speed = 20;
+            if(checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
+        }
+        else if(key == 'q' && current_ineteraction != -1) sub_scene = (current_ineteraction == 0) ? 14 : current_ineteraction, card_toggle = false, iPlaySound("assets/sounds/click.wav", false, 100);
+        else if(key == 'e' && current_ineteraction > 0 && (current_ineteraction == current_level || current_ineteraction == 0 || current_ineteraction > 7)) scene = current_ineteraction + 6,sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
         else if(key == ' ' && sub_scene >= 1 && sub_scene <=9) (card_toggle == false) ? card_toggle = true : card_toggle = false, iPlaySound("assets/sounds/click.wav", false, 100);
         else if(key == 27) (sub_scene == 0) ? sub_scene = 11 : sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
+        else if(key == 'm' && bonus_one == true) (sub_scene == 0) ? sub_scene = 13 : sub_scene = 0, iPlaySound("assets/sounds/paper.wav", false, 100);
         break;
     case 7:
-        if(key == 'p') level_timer = 3000;
+        if(key == 'p') win = true;;
+        break;
+    case 8:
+        if(key == 'p') win = true;
+        if(key == ' ') tool = (tool == false) ? true : false;
+        break;
+    case 9:
+        if(key == 'p')
+        {
+            for(int i=1; i<=12; i++)
+            {
+                pieces[i-1] = i;
+            }
+        }
+        break;
+    case 10:
+        if(key == 'p') win = true;
+        break;
+    case 11:
+        if(key == 'p') win = true;
+        break;
+    case 12:
+        if(key == 'p') win = true;
+        break;
+    case 13:
+        if(key == 'p') win = true;
+        break;
+    case 14:
+        if(key == 'p') win = true, dart_score = 250;
+        break;
+    case 15:
+        if(key == 'p') win = true;
+        break;
+    case 16:
+        if(key == ' ')
+        {
+            if(sub_scene < 2) sub_scene++;
+            else scene = 17, sub_scene = 0;
+
+            iPlaySound("assets/sounds/click.wav", false, 100);
+        }
+        break;
+    case 17:
+        if(key == ' ') scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
+        break;
     }
 
     if(scene >= 7 && scene <= 15 && key == 27) scene = 6, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
@@ -2093,6 +2526,28 @@ void iSpecialKeyboard(unsigned char key)
     case 4:
         if(key == GLUT_KEY_LEFT && sub_scene != 0) sub_scene--, iPlaySound("assets/sounds/click.wav", false, 100);
         else if(key == GLUT_KEY_RIGHT && sub_scene != 7) sub_scene++, iPlaySound("assets/sounds/click.wav", false, 100);
+        break;
+    case 6:
+        if(key == GLUT_KEY_UP)
+        {
+            move_speed = 10;
+             if(checkMove(x_position,y_position - move_speed))y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
+        }
+        else if(key == GLUT_KEY_DOWN)
+        {
+            move_speed = 10;
+            if(checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
+        }
+        else if(key == GLUT_KEY_RIGHT)
+        {
+            move_speed = 10;
+            if(checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
+        }
+        else if(key == GLUT_KEY_LEFT)
+        {
+            move_speed = 10;
+            if(checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
+        }
         break;
     }
 }
@@ -2115,12 +2570,11 @@ int main(int argc, char *argv[])
         if(strcmp(stringRead, "TRUE") == 0) bonus_one = true;
         fscanf(save_ptr, "%s\n", stringRead);
         if(strcmp(stringRead, "TRUE") == 0) bonus_two = true;
+        fscanf(save_ptr, "%d\n", &saved_people);
         fscanf(save_ptr, "%d\n", &score);
         //this line should be removed
-        level_timer = level_timer_list[current_level-1];
-        current_level = 1;
         win = false;
-        printf("%s, %d, %d, %d, %d, %d", name, current_level, level_timer, bonus_one, bonus_two, score);
+        printf("%s, %d, %d, %d, %d, %d, %d\n", name, current_level, level_timer, bonus_one, bonus_two, saved_people, score);
     }
     else
     {
@@ -2130,7 +2584,7 @@ int main(int argc, char *argv[])
     //Load Image
     loadImages();
     //Load Sound
-    //menu_bgm = iPlaySound("assets/sounds/main_bgm.wav",true, 20);
+    menu_bgm = iPlaySound("assets/sounds/main_bgm.wav",true, 20);
     iInitialize(1920, 1080, "Rescue Rush");
     return 0;
 }

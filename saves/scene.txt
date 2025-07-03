@@ -17,6 +17,9 @@
 	1 - 9 : Game Cards
 	10 : Mission Passed
 	11 : Pause Menu
+	12 : Fail
+	13 : Map
+	14 : Hero's House
 7 : Burning House
 8 : Cracked Floor
 9 : Door Locked
@@ -26,4 +29,6 @@
 13 : Do You Copy
 14 : Gambler Merchant
 15 : Get Pet Cat
+16 : Outro
+17 : Score
 

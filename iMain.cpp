@@ -10,7 +10,7 @@
 
 bool init = false;
 float ratio = 0.8; //zoomed 0.8, full 1
-int scene = 17;
+int scene = 0;
 int sub_scene = 0;
 int prev_sub_scene = 0;
 double tri_x[3];

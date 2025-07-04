@@ -10,7 +10,7 @@
 
 bool init = false;
 float ratio = 0.8; //zoomed 0.8, full 1
-int scene = 0;
+int scene = 17;
 int sub_scene = 0;
 int prev_sub_scene = 0;
 double tri_x[3];
@@ -36,22 +36,33 @@ int temp_high_score2;
 bool high_score_set = false;
 bool new_high_score = false;
 int loader_count = 0;
+int world_counter = 0;
 
-Image cover,menu,newGame,leaderboard,instruction, world, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,world_map, score_board;
+Image cover,menu,newGame,leaderboard,instruction, world,burn_effect, rain, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,world_map, score_board;
 Image hero, hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9, hero10, hero11, hero12;
 Image pass, fail, dead, valve1, valve2, dart1, dart2, bulb;
 Image marked,cracked,one,two,three,four,five,six,zero;
 Image toolbar,tool1,tool2,tool3,tool4,tool5,tool6,tool7;
+Image main_map,main_map2,world_burn1,world_burn2,world_burn3,world_burn4,world_rain1, world_rain2, world_rain3;
 FILE *score_ptr, *save_ptr;
-int menu_bgm, world_bgm;
-bool menu_bgm_status = true;
-bool world_bgm_status = false;
 
 //Level timer
 int level_timer_list[6] = {1500,10000,3000,3000,8000,6000};
 int score_list[7] = {500, 2000, 1000, 500, 2000, 1500, 1000};
 int high_score[5];
 char master_rescuer [5][31];
+
+
+//Sound
+int menu_bgm, world_bgm, rain_bgm, intro_bgm, outro_bgm;
+bool menu_bgm_status = false;
+bool world_bgm_status = false;
+bool rain_bgm_status = false;
+bool intro_bgm_status = false;
+bool outro_bgm_status = false;
+int sound_volume[] = {10,60,30,15,80,20,20,10,10,5,10,20,20,30,20,30,20,30,30,20,10,20};
+//  sound_volume[] = {0.main_bgm, 1.world_bgm, 2.intro, 3.outro, 4.rain, 5.click, 6.hover, 7.dart, 8.electric, 9.error, 10.fail, 11.1interact, 12.jump, 13.light, 14.mark, 15.paper, 16.passed, 17.radio, 18.step, 19.valve, 20.win, 21.crack}
+//always add sound at last, otherwise volume might change
 
 //save/load info
 char name[31] = "";
@@ -171,12 +182,13 @@ int this_dart = 0;
 
 void loading_text(void)
 {
-    if(loader_count != 0) for(int i=0; i<81; i++) printf("\b");
+    if(loader_count != 0) for(int i=0; i<89; i++) printf("\b");
     printf("Loading (");
-    if(loader_count%3 == 0) printf("\\) [");
-    else if(loader_count%3 == 1) printf("-) [");
-    else printf("/) [");
-    for(int i=0; i<67; i++)
+    if(loader_count%4 == 0) printf("\\) [");
+    else if(loader_count%4 == 1) printf("|) [");
+    else if(loader_count%4 == 2) printf("/) [");
+    else printf("-) [");
+    for(int i=0; i<75; i++)
     {
         if(i<=loader_count) printf("|");
         else printf(".");
@@ -203,11 +215,36 @@ void loadImages()
     iLoadImage(&instruction, "assets/images/instruction.png");
     iScaleImage(&instruction, ratio);
     loading_text();
-    iLoadImage(&world, "assets/images/world.png");
-    iScaleImage(&world, 1/0.8*ratio);
-    loading_text();
     iLoadImage(&score_board, "assets/images/score.png");
     iScaleImage(&score_board , ratio);
+    loading_text();
+    //worlds
+    iLoadImage(&main_map, "assets/images/world.png");
+    iScaleImage(&main_map, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&main_map2, "assets/images/world2.png");
+    iScaleImage(&main_map2, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_burn1, "assets/images/worlds/burn1.png");
+    iScaleImage(&world_burn1, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_burn2, "assets/images/worlds/burn2.png");
+    iScaleImage(&world_burn2, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_burn3, "assets/images/worlds/burn3.png");
+    iScaleImage(&world_burn3, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_burn4, "assets/images/worlds/burn4.png");
+    iScaleImage(&world_burn4, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_rain1, "assets/images/worlds/rain1.png");
+    iScaleImage(&world_rain1, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_rain2, "assets/images/worlds/rain2.png");
+    iScaleImage(&world_rain2, 1/0.8*ratio);
+    loading_text();
+    iLoadImage(&world_rain3, "assets/images/worlds/rain3.png");
+    iScaleImage(&world_rain3, 1/0.8*ratio);
     loading_text();
     //Hero
     iLoadImage(&hero1, "assets/images/effects/hero1.png");
@@ -393,6 +430,56 @@ void loadImages()
     printf("\n");
 }
 
+void sound_handle(int idx)
+{
+    switch(idx)
+    {
+    case 0:
+        //main bgm
+        if(menu_bgm_status == false)
+        {
+            iStopAllSounds();
+            menu_bgm_status = world_bgm_status = intro_bgm_status = outro_bgm_status = rain_bgm_status = false;
+            menu_bgm_status = true;
+            menu_bgm = iPlaySound("assets/sounds/main_bgm.wav", true, sound_volume[0]);
+        }
+        break;
+    case 1:
+        if(world_bgm_status == false)
+        {
+            iStopAllSounds();
+            menu_bgm_status = world_bgm_status = intro_bgm_status = outro_bgm_status = rain_bgm_status = false;
+            world_bgm_status = true;
+            world_bgm = iPlaySound("assets/sounds/world_bgm.wav", true, sound_volume[1]);
+        }
+        break;
+    case 2:
+        if(intro_bgm_status == false)
+        {
+            iStopAllSounds();
+            menu_bgm_status = world_bgm_status = intro_bgm_status = outro_bgm_status = rain_bgm_status = false;
+            intro_bgm_status = true;
+            intro_bgm = iPlaySound("assets/sounds/intro.wav", true, sound_volume[2]);
+        }
+        break;
+    case 3:
+        if(outro_bgm_status == false)
+        {
+            iStopAllSounds();
+            menu_bgm_status = world_bgm_status = intro_bgm_status = outro_bgm_status = rain_bgm_status = false;
+            outro_bgm_status = true;
+            outro_bgm = iPlaySound("assets/sounds/outro.wav", false, sound_volume[3]);
+        }
+        break;
+    case 4:
+        if(rain_bgm_status == false) rain_bgm_status = true, rain_bgm = iPlaySound("assets/sounds/rain.wav", true, sound_volume[4]);
+        break;
+    case 5:
+        if(rain_bgm_status == true) rain_bgm_status = false, iStopSound(rain_bgm);
+        break;
+    }
+}
+
 void saveGame(void)
 {
     save_ptr = fopen("saves/save.txt","w");
@@ -410,9 +497,10 @@ void saveGame(void)
 }
 
 
+
 void newGameInit(void)
 {
-    printf("New Game");
+    printf("New Game as %s\n", name);
     save = true;
     current_level = 1;
     level_timer = level_timer_list[0];
@@ -716,7 +804,7 @@ int dart_score_count(void)
     if(aim_x < 0 && aim_y > 0) deg = 180 - deg;
     else if(aim_x < 0 && aim_y < 0) deg = 180 + deg;
     else if(aim_x > 0 && aim_y < 0) deg = 360 - deg;
-    iPlaySound("assets/sounds/dart.wav",false,100);
+    iPlaySound("assets/sounds/dart.wav",false,sound_volume[7]);
     if(r > 284) temp_score += 0;
     else if(r > 12 && r <= 27) temp_score += 25;
     else if(r > 0 && r <= 12) temp_score += 50;
@@ -763,10 +851,11 @@ void iDraw()
     {
     case 0:
         iShowLoadedImage(0,0,&cover);
+        sound_handle(0);
         break;
     case 1:
-        //if(menu_bgm_status == false) menu_bgm_status = true, iPlaySound("assets/sound/main_bgm.wav", true, 20);
         iShowLoadedImage(0,0,&menu);
+        sound_handle(0);
         if(save == false) iSetTransparentColor(0,0,0,0.6);
         else iSetColor(0,0,0);
         iText(500*ratio, 760*ratio, "CONTINUE", GLUT_BITMAP_TIMES_ROMAN_24);
@@ -928,8 +1017,7 @@ void iDraw()
         if(sub_scene != 7) iFilledPolygon(tri_x,tri_y, 3);
         break;
     case 5:
-        iStopSound(menu_bgm);
-        menu_bgm_status = false;
+        sound_handle(2);
         iSetColor(0,0,0);
         iFilledRectangle(0,0,1920*ratio, 1080*ratio);
         iSetColor(255,255,255);
@@ -962,7 +1050,31 @@ void iDraw()
         iText(850*ratio, 400*ratio, "Press \"Space\" to continue.", GLUT_BITMAP_HELVETICA_18);
         break;
     case 6:
-        if(world_bgm_status == false) world_bgm_status = true, iPlaySound("assets/sounds/world_bgm.wav", true, 100);
+        sound_handle(1);
+        if(current_level == 3 || current_level == 4) sound_handle(4);
+
+        //world animation
+        if(current_level == 1)
+        {
+            world = main_map2;
+            if(world_counter < 20) burn_effect = world_burn1;
+            else if(world_counter < 40) burn_effect = world_burn2;
+            else if(world_counter < 60) burn_effect = world_burn3;
+            else if(world_counter < 80) burn_effect = world_burn4;
+            else burn_effect = world_burn1, world_counter = 0;
+            world_counter++;
+        }
+        else world = main_map;
+
+
+        if(current_level == 3 || current_level == 4)
+        {
+            if(world_counter < 20) rain = world_rain1;
+            else if(world_counter < 40) rain = world_rain2;
+            else if(world_counter < 60) rain = world_rain3;
+            else rain = world_rain1, world_counter = 0;
+            world_counter++;
+        }
 
         //Dynamic Movement
         if(x_position > 0)
@@ -972,18 +1084,24 @@ void iDraw()
                 iShowLoadedImage(0*ratio,0*ratio, &world);
                 //iShowLoadedImage((936-x_position)*ratio,(522-y_position)*ratio, &hero1);
                 heroMove((936-x_position)*ratio,(522-y_position)*ratio);
+                if(current_level== 1) iShowLoadedImage(0*ratio,0*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(0*ratio,0*ratio, &rain);
             }
             else if(y_position < -2160) //hero left, up
             {
                 iShowLoadedImage(0*ratio,-2160*ratio, &world);
                 //iShowLoadedImage((936-x_position)*ratio,(522+(-2160-y_position))*ratio, &hero1);
                 heroMove((936-x_position)*ratio,(522+(-2160-y_position))*ratio);
+                if(current_level== 1) iShowLoadedImage(0*ratio,-2160*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(0*ratio,-2160*ratio, &rain);
             }
             else //hero left
             {
                 iShowLoadedImage(0*ratio,y_position*ratio, &world);
                 //iShowLoadedImage((936-x_position)*ratio,522*ratio, &hero1);
                 heroMove((936-x_position)*ratio,522*ratio);
+                if(current_level== 1) iShowLoadedImage(0*ratio,y_position*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(0*ratio,y_position*ratio, &rain);
             }
         }
         else if(x_position < -3840)
@@ -993,18 +1111,24 @@ void iDraw()
                 iShowLoadedImage(-3840*ratio,0*ratio, &world);
                 //iShowLoadedImage((936-3840-x_position)*ratio,(522-y_position)*ratio, &hero1);
                 heroMove((936-3840-x_position)*ratio,(522-y_position)*ratio);
+                if(current_level== 1) iShowLoadedImage(-3840*ratio,0*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(-3840*ratio,0*ratio, &rain);
             }
             else if(y_position < -2160) //hero right, up
             {
                 iShowLoadedImage(-3840*ratio,-2160*ratio, &world);
                 //iShowLoadedImage((936-3840-x_position)*ratio,(522-2160-y_position)*ratio, &hero1);
                 heroMove((936-3840-x_position)*ratio,(522-2160-y_position)*ratio);
+                if(current_level== 1) iShowLoadedImage(-3840*ratio,-2160*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(-3840*ratio,-2160*ratio, &rain);
             }
             else //hero right
             {
                 iShowLoadedImage(-3840*ratio,y_position*ratio, &world);
                 //iShowLoadedImage((936-3840-x_position)*ratio,522*ratio, &hero1);
                 heroMove((936-3840-x_position)*ratio,522*ratio);
+                if(current_level== 1) iShowLoadedImage(-3840*ratio,y_position*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(-3840*ratio,y_position*ratio, &rain);
             }
         }
         else
@@ -1014,18 +1138,24 @@ void iDraw()
                 iShowLoadedImage(x_position*ratio,0*ratio, &world);
                 //iShowLoadedImage(936*ratio,(522-y_position)*ratio, &hero1);
                 heroMove(936*ratio,(522-y_position)*ratio);
+                if(current_level== 1) iShowLoadedImage(x_position*ratio,0*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(x_position*ratio,0*ratio, &rain);
             }
             else if(y_position < -2160) //hero up
             {
                 iShowLoadedImage(x_position*ratio,-2160*ratio, &world);
                 //iShowLoadedImage(936*ratio,(522-2160-y_position)*ratio, &hero1);
                 heroMove(936*ratio,(522-2160-y_position)*ratio);
+                if(current_level== 1) iShowLoadedImage(x_position*ratio,-2160*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(x_position*ratio,-2160*ratio, &rain);
             }
             else //hero normal
             {
                 iShowLoadedImage(x_position*ratio,y_position*ratio, &world);
                 //iShowLoadedImage(936*ratio,522*ratio, &hero1);
                 heroMove(936*ratio,522*ratio);
+                if(current_level== 1) iShowLoadedImage(x_position*ratio,y_position*ratio, &burn_effect);
+                else if(current_level== 3 || current_level == 4) iShowLoadedImage(x_position*ratio,y_position*ratio, &rain);
             }
         }
 
@@ -1068,7 +1198,7 @@ void iDraw()
                 iText(70*ratio,20*ratio, "Open Map", GLUT_BITMAP_HELVETICA_18);
             }
 
-            if(current_ineteraction == current_level || current_ineteraction >= 8)
+            if(current_ineteraction == current_level || (current_ineteraction == 8 && bonus_one == false) || (current_ineteraction == 9 && bonus_two == false))
             {
                 iSetColor(255,255,255);
                 iFilledRectangle(150*ratio,10*ratio,35*ratio, 40*ratio);
@@ -1139,7 +1269,7 @@ void iDraw()
             //if(added_score%10 >=0 && added_score%10 <= 9) new_score[8] = added_score%10 + '0', added_score /= 10;
             //if(added_score%10 >=0 && added_score%10 <= 9) new_score[7] = added_score%10 + '0', added_score /= 10;
             //iText(900*ratio, 550*ratio, "Score +877", GLUT_BITMAP_TIMES_ROMAN_24);
-            if(counter == 0) iPlaySound("assets/sounds/passed.wav", false, 100);
+            if(counter == 0) iPlaySound("assets/sounds/passed.wav", false, sound_volume[16]);
             if( counter != 600) counter++;
             else sub_scene = 0, counter = 0;
             break;
@@ -1237,7 +1367,7 @@ void iDraw()
             //Checking
             if(valve_order[current_valve] != focus)
             {
-            if(rotate_count == 90) iPlaySound("assets/sounds/error.wav", false, 50);
+            if(rotate_count == 90) iPlaySound("assets/sounds/error.wav", false, sound_volume[9]);
             iSetColor(216,19,19);
             iFilledRectangle(906*ratio, 629*ratio, 20*ratio, 20*ratio);
             iFilledRectangle(1551*ratio, 629*ratio, 20*ratio, 20*ratio);
@@ -1266,7 +1396,7 @@ void iDraw()
         //winning
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1289,7 +1419,7 @@ void iDraw()
         {
             //timer decreases
             if(win == false && level_timer > 0) level_timer--;
-            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
 
         }
 
@@ -1328,9 +1458,9 @@ void iDraw()
         //Click Handle
         if(win == false && failed == false)
         {
-            if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == true && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 2, (floor_map[(focus-1)/12][(focus-1)%12] == -1) ? iPlaySound("assets/sounds/crack.wav", false, 100),crack_count++ : iPlaySound("assets/sounds/step.wav", false, 100), step_count++;
-            else if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 1, iPlaySound("assets/sounds/mark.wav", false, 100), marker_count++;
-            else if(tool_map[(focus-1)/12][(focus-1)%12] == 1 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 0, iPlaySound("assets/sounds/mark.wav", false, 100), marker_count--;
+            if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == true && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 2, (floor_map[(focus-1)/12][(focus-1)%12] == -1) ? iPlaySound("assets/sounds/crack.wav", false, sound_volume[21]),crack_count++ : iPlaySound("assets/sounds/step.wav", false, sound_volume[18]), step_count++;
+            else if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 1, iPlaySound("assets/sounds/mark.wav", false, sound_volume[14]), marker_count++;
+            else if(tool_map[(focus-1)/12][(focus-1)%12] == 1 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 0, iPlaySound("assets/sounds/mark.wav", false, sound_volume[14]), marker_count--;
         }
         focus = 0;
 
@@ -1380,7 +1510,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1401,7 +1531,7 @@ void iDraw()
         }
         else if(failed == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1427,7 +1557,7 @@ void iDraw()
         {
             //timer decreases
             if(win == false && level_timer > 0) level_timer--;
-            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
 
         }
 
@@ -1448,10 +1578,11 @@ void iDraw()
     case 9:
         //locked door
         iShowLoadedImage(0,0,&dl);
+        sound_handle(5);
         //swapping cards
         if(prev_focus != focus && prev_focus != 0 && win == false)
         {
-            iPlaySound("assets/sounds/paper.wav", false, 100);
+            iPlaySound("assets/sounds/paper.wav", false, sound_volume[15]);
             int t = pieces[prev_focus-1];
             pieces[prev_focus-1] = pieces[focus-1];
             pieces[focus-1] = t;
@@ -1485,7 +1616,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1508,7 +1639,7 @@ void iDraw()
         {
             //timer decreases
             if(win == false && level_timer > 0) level_timer--;
-            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
 
         }
 
@@ -1530,10 +1661,11 @@ void iDraw()
     case 10:
         //Electrified
         iShowLoadedImage(0,0,&e);
+        sound_handle(5);
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1556,7 +1688,7 @@ void iDraw()
         {
             //timer decreases
             if(win == false && level_timer > 0) level_timer--;
-            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
 
         }
 
@@ -1580,7 +1712,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1603,7 +1735,7 @@ void iDraw()
         {
             //timer decreases
             if(win == false && level_timer > 0) level_timer--;
-            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
 
         }
 
@@ -1672,7 +1804,7 @@ void iDraw()
             {
                 bulb_pos[last_bulb_idx][0] = (focus >= 133) ? 132-focus : (focus-1)/12;
                 bulb_pos[last_bulb_idx][1] = (focus >= 133) ? 132-focus : (focus-1)%12;
-                iPlaySound("assets/sounds/light.wav", false, 100);
+                iPlaySound("assets/sounds/light.wav", false, sound_volume[13]);
             }
             bulb_idx = -1;
             last_bulb_idx = -1;
@@ -1759,7 +1891,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1782,7 +1914,7 @@ void iDraw()
         {
             //timer decreases
             if(win == false && level_timer > 0) level_timer--;
-            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win == false && level_timer == 1) iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
 
         }
 
@@ -1872,7 +2004,7 @@ void iDraw()
         if(r1+b1 == 13) win = true;
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, 100);
+            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1881,7 +2013,6 @@ void iDraw()
                 sub_scene = 0;
                 win = false;
                 score += score_list[current_level-1];
-                if(level_timer != 0) score += (int)(1000*(level_timer/(double)level_timer_list[current_level-1])), saved_people++;
                 saveGame();
                 focus = 0;
                 sub_focus = 0;
@@ -1961,7 +2092,7 @@ void iDraw()
         }
         else
         {
-            if(win_counter == 300)win_counter--, (dart_score >= 250) ? iPlaySound("assets/sounds/win.wav", false, 100) : iPlaySound("assets/sounds/fail.wav", false, 100);
+            if(win_counter == 300)win_counter--, (dart_score >= 250) ? iPlaySound("assets/sounds/win.wav", false, sound_volume[20]) : iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1973,6 +2104,7 @@ void iDraw()
                     sub_scene = 10;
                     score += 1000;
                     bonus_one = true;
+                    saveGame();
                 }
                 else
                 {
@@ -2011,36 +2143,27 @@ void iDraw()
         iShowLoadedImage(0,0,&gpc);
         break;
     case 16:
-        iStopSound(menu_bgm);
-        iStopSound(world_bgm);
-        menu_bgm_status = false;
-        world_bgm_status = false;
+        sound_handle(3);
         iSetColor(0,0,0);
         iFilledRectangle(0,0,1920*ratio, 1080*ratio);
         iSetColor(255,255,255);
         switch(sub_scene)
         {
         case 0:
-            iTextBold(400*ratio, 650*ratio, "A powerful cyclone struck a remote village late last night, unleashing fierce winds and torrential rains", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "that lasted for hours. The storm made landfall without much warning, catching many residents unprepared.", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "Thatched houses were torn from their foundations, trees were uprooted, and power lines lay tangled on the", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 560*ratio, "ground. The narrow dirt roads  that connect the village to nearby towns were flooded and rendered ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 530*ratio, "impassable, effectively cutting off all outside communication and aid.", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 650*ratio, "As dawn broke over the ruined village, the distant thump of helicopter blades echoed through the morning ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "mist. Our hero stood atop the hill, waving a bright cloth tied to a bamboo pole—the signal he’d prepared ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "overnight. The rescue team circled once, then descended into the makeshift clearing. Medics poured out,", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "bringing supplies, stretchers, and hope", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         case 1:
-            iTextBold(400*ratio, 650*ratio, "The destruction left behind is vast and heartbreaking. Farmlands that had been ready for harvest are now", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "submerged under water, and livestock have either perished or gone missing. The local school building, ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "which had served as an emergency shelter, collapsed under the pressure of the winds. Survivors are now", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 560*ratio, "left without food, clean water, or shelter, as rescue efforts struggle to reach the isolated area. The ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 530*ratio, "once peaceful village now lies in ruins, its people facing an uncertain and difficult path to recovery.", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 650*ratio, "Villagers cheered, cried, and clung to one another as they were guided to safety. The hero moved among", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "them, pointing out the injured, lifting children, and reassuring the fearful. One of the rescuers", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "approached him and asked, “Was it you who called for help?” He nodded, exhausted but steady. “You saved", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "a village,” the rescuer said.", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         case 2:
-            iTextBold(400*ratio, 650*ratio, "Amid the chaos and devastation, a brave figure emerged. Though only a man with no special powers, he", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "braved the storm’s fury to guide stranded villagers to safety and rescue the injured from beneath ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "collapsed homes.  With nothing but courage in his heart, he became the unlikely hero his village ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 560*ratio, "desperately needed. ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 530*ratio, "Hail to our HERO. Hail to", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(735*ratio, 530*ratio, name , GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 650*ratio, "The hero looked around at the people he had protected.", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "“No,” he replied softly, “we saved each other.”", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         }
         iText(850*ratio, 400*ratio, "Press \"Space\" to continue.", GLUT_BITMAP_HELVETICA_18);
@@ -2121,11 +2244,11 @@ void iMouseMove(int mx, int my)
     case 1:
         if(mx > 480*ratio && mx < 792.5*ratio)
         {
-            if(my > 745*ratio && my < 795*ratio && save == true) prev_sub_scene = sub_scene, sub_scene = 1, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, 100) : sub_scene = sub_scene;
-            else if(my > 685*ratio && my < 735*ratio) prev_sub_scene = sub_scene, sub_scene = 2, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, 100) : sub_scene = sub_scene;
-            else if(my > 625*ratio && my < 675*ratio) prev_sub_scene = sub_scene, sub_scene = 3, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, 100) : sub_scene = sub_scene;
-            else if(my > 565*ratio && my < 615*ratio) prev_sub_scene = sub_scene, sub_scene = 4, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, 100) : sub_scene = sub_scene;
-            else if(my > 505*ratio && my < 555*ratio) prev_sub_scene = sub_scene, sub_scene = 5, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, 100) : sub_scene = sub_scene;
+            if(my > 745*ratio && my < 795*ratio && save == true) prev_sub_scene = sub_scene, sub_scene = 1, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, sound_volume[6]) : sub_scene = sub_scene;
+            else if(my > 685*ratio && my < 735*ratio) prev_sub_scene = sub_scene, sub_scene = 2, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, sound_volume[6]) : sub_scene = sub_scene;
+            else if(my > 625*ratio && my < 675*ratio) prev_sub_scene = sub_scene, sub_scene = 3, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, sound_volume[6]) : sub_scene = sub_scene;
+            else if(my > 565*ratio && my < 615*ratio) prev_sub_scene = sub_scene, sub_scene = 4, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, sound_volume[6]) : sub_scene = sub_scene;
+            else if(my > 505*ratio && my < 555*ratio) prev_sub_scene = sub_scene, sub_scene = 5, (prev_sub_scene != sub_scene) ? iPlaySound("assets/sounds/hover.wav", false, sound_volume[6]) : sub_scene = sub_scene;
             else sub_scene = 0;
         }
         else sub_scene = 0;
@@ -2251,19 +2374,19 @@ void iMouse(int button, int state, int mx, int my)
         case 1:
             if(mx > 480*ratio && mx < 792.5*ratio)
             {
-                if(my > 745*ratio && my < 795*ratio) iPlaySound("assets/sounds/click.wav", false, 100),(save == true) ? scene = 6 : scene = 1,sub_scene = 0; //continue
-                else if(my > 685*ratio && my < 735*ratio) iPlaySound("assets/sounds/click.wav", false, 100), name_cursor = strlen(name), scene = 2, sub_scene = 0; //New game
-                else if(my > 625*ratio && my < 675*ratio) iPlaySound("assets/sounds/click.wav", false, 100), scene = 3, sub_scene = 0; //Leaderboard
-                else if(my > 565*ratio && my < 615*ratio) iPlaySound("assets/sounds/click.wav", false, 100), scene = 4, sub_scene = 0; //Instruction
-                else if(my > 505*ratio && my < 555*ratio) iPlaySound("assets/sounds/click.wav", false, 100), exit(0); //Exit
+                if(my > 745*ratio && my < 795*ratio) iPlaySound("assets/sounds/click.wav", false, sound_volume[5]),(save == true) ? scene = 6 : scene = 1,sub_scene = 0; //continue
+                else if(my > 685*ratio && my < 735*ratio) iPlaySound("assets/sounds/click.wav", false, sound_volume[5]), name_cursor = strlen(name), scene = 2, sub_scene = 0; //New game
+                else if(my > 625*ratio && my < 675*ratio) iPlaySound("assets/sounds/click.wav", false, sound_volume[5]), scene = 3, sub_scene = 0; //Leaderboard
+                else if(my > 565*ratio && my < 615*ratio) iPlaySound("assets/sounds/click.wav", false, sound_volume[5]), scene = 4, sub_scene = 0; //Instruction
+                else if(my > 505*ratio && my < 555*ratio) iPlaySound("assets/sounds/click.wav", false, sound_volume[5]), exit(0); //Exit
             }
             break;
         case 2:
-            if(mx > 970*ratio && mx < 1070*ratio && my > 580*ratio && my < 620*ratio) newGameInit(), iPlaySound("assets/sounds/click.wav", false, 100);
+            if(mx > 970*ratio && mx < 1070*ratio && my > 580*ratio && my < 620*ratio) newGameInit(), iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
             break;
         case 4:
-            if(mx > 1080*ratio && mx < 1110*ratio && my > 570*ratio && my < 600*ratio && sub_scene != 0) sub_scene--, iPlaySound("assets/sounds/click.wav", false, 100);
-            else if(mx > 1120*ratio && mx < 1150*ratio && my > 570*ratio && my < 600*ratio && sub_scene != 7) sub_scene++, iPlaySound("assets/sounds/click.wav", false, 100);
+            if(mx > 1080*ratio && mx < 1110*ratio && my > 570*ratio && my < 600*ratio && sub_scene != 0) sub_scene--, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+            else if(mx > 1120*ratio && mx < 1150*ratio && my > 570*ratio && my < 600*ratio && sub_scene != 7) sub_scene++, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
             break;
         case 6:
             switch(sub_scene)
@@ -2271,9 +2394,9 @@ void iMouse(int button, int state, int mx, int my)
             case 11:
                 if(mx > 740*ratio && mx < 1140*ratio)
                 {
-                    if(my > 570*ratio && my < 610*ratio) sub_scene = 0,iPlaySound("assets/sounds/click.wav", false, 100);
-                    if(my > 520*ratio && my < 560*ratio) saveGame(),scene = 1,sub_scene = 0,iPlaySound("assets/sounds/click.wav", false, 100);
-                    if(my > 470*ratio && my < 510*ratio) saveGame(),iPlaySound("assets/sounds/click.wav", false, 100), exit(0);
+                    if(my > 570*ratio && my < 610*ratio) sub_scene = 0,iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+                    if(my > 520*ratio && my < 560*ratio) saveGame(),scene = 1,sub_scene = 0,iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+                    if(my > 470*ratio && my < 510*ratio) saveGame(),iPlaySound("assets/sounds/click.wav", false, sound_volume[5]), exit(0);
                 }
             }
             break;
@@ -2281,11 +2404,11 @@ void iMouse(int button, int state, int mx, int my)
             //Burning House
             if(my > 16*ratio && my < 1064*ratio && win == false && rotate_count == 0)
             {
-                if(mx > 866*ratio && mx < 966*ratio) focus = 1, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, 100);
-                else if(mx > 1081*ratio && mx < 1181*ratio) focus = 2, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, 100);
-                else if(mx > 1296*ratio && mx < 1396*ratio) focus = 3, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, 100);
-                else if(mx > 1511*ratio && mx < 1611*ratio) focus = 4, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, 100);
-                else if(mx > 1726*ratio && mx < 1826*ratio) focus = 5, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, 100);
+                if(mx > 866*ratio && mx < 966*ratio) focus = 1, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, sound_volume[19]);
+                else if(mx > 1081*ratio && mx < 1181*ratio) focus = 2, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, sound_volume[19]);
+                else if(mx > 1296*ratio && mx < 1396*ratio) focus = 3, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, sound_volume[19]);
+                else if(mx > 1511*ratio && mx < 1611*ratio) focus = 4, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, sound_volume[19]);
+                else if(mx > 1726*ratio && mx < 1826*ratio) focus = 5, rotate_count = 100, iPlaySound("assets/sounds/valve.wav", false, sound_volume[19]);
                 else sub_focus = 0;
             }
             else sub_focus = 0;
@@ -2363,16 +2486,16 @@ void iMouse(int button, int state, int mx, int my)
             //Do You Copy
             if(my > 401*ratio && my < 482*ratio && win == false)
             {
-                if(mx > 965.1*ratio && mx < 1046.1*ratio) radio_knob1 = (radio_knob1+1)%8, iPlaySound("assets/sounds/radio.wav", false, 100);
-                else if(mx > 1588*ratio && mx < 1669*ratio) radio_knob2 = (radio_knob2+1)%8, iPlaySound("assets/sounds/radio.wav", false, 100);
+                if(mx > 965.1*ratio && mx < 1046.1*ratio) radio_knob1 = (radio_knob1+1)%8, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
+                else if(mx > 1588*ratio && mx < 1669*ratio) radio_knob2 = (radio_knob2+1)%8, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
                 else if(my > 442*ratio && my < 463*ratio)
                 {
-                    if(mx > 1112*ratio && mx < 1157*ratio) (radio_button[0] == 0) ? radio_button[0] = 1 : radio_button[0] = 0, iPlaySound("assets/sounds/radio.wav", false, 100);
-                    else if(mx > 1180*ratio && mx < 1225*ratio) (radio_button[1] == 0) ? radio_button[1] = 1 : radio_button[1] = 0, iPlaySound("assets/sounds/radio.wav", false, 100);
-                    else if(mx > 1248*ratio && mx < 1293*ratio) (radio_button[2] == 0) ? radio_button[2] = 1 : radio_button[2] = 0, iPlaySound("assets/sounds/radio.wav", false, 100);
-                    else if(mx > 1316*ratio && mx < 1361*ratio) (radio_button[3] == 0) ? radio_button[3] = 1 : radio_button[3] = 0, iPlaySound("assets/sounds/radio.wav", false, 100);
-                    else if(mx > 1385*ratio && mx < 1430*ratio) (radio_button[4] == 0) ? radio_button[4] = 1 : radio_button[4] = 0, iPlaySound("assets/sounds/radio.wav", false, 100);
-                    else if(mx > 1453*ratio && mx < 1498*ratio) (radio_button[5] == 0) ? radio_button[5] = 1 : radio_button[5] = 0, iPlaySound("assets/sounds/radio.wav", false, 100);
+                    if(mx > 1112*ratio && mx < 1157*ratio) (radio_button[0] == 0) ? radio_button[0] = 1 : radio_button[0] = 0, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
+                    else if(mx > 1180*ratio && mx < 1225*ratio) (radio_button[1] == 0) ? radio_button[1] = 1 : radio_button[1] = 0, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
+                    else if(mx > 1248*ratio && mx < 1293*ratio) (radio_button[2] == 0) ? radio_button[2] = 1 : radio_button[2] = 0, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
+                    else if(mx > 1316*ratio && mx < 1361*ratio) (radio_button[3] == 0) ? radio_button[3] = 1 : radio_button[3] = 0, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
+                    else if(mx > 1385*ratio && mx < 1430*ratio) (radio_button[4] == 0) ? radio_button[4] = 1 : radio_button[4] = 0, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
+                    else if(mx > 1453*ratio && mx < 1498*ratio) (radio_button[5] == 0) ? radio_button[5] = 1 : radio_button[5] = 0, iPlaySound("assets/sounds/radio.wav", false, sound_volume[17]);
                 }
             }
             break;
@@ -2394,7 +2517,7 @@ void iKeyboard(unsigned char key)
     switch(scene)
     {
     case 0:
-        if(key == ' ') scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
+        if(key == ' ') scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
         break;
     case 2:
         if(key == 27) scene = 1, sub_scene = 0;
@@ -2418,55 +2541,55 @@ void iKeyboard(unsigned char key)
             if(sub_scene < 2) sub_scene++;
             else scene = 6, sub_scene = 0;
 
-            iPlaySound("assets/sounds/click.wav", false, 100);
+            iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
         }
         break;
     case 6:
-        if(key == 'w')
+        if(key == 'w' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
              if(checkMove(x_position,y_position - move_speed))y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
         }
-        else if(key == 's')
+        else if(key == 's' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
             if(checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
         }
-        else if(key == 'd')
+        else if(key == 'd' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
             if(checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
         }
-        else if(key == 'a')
+        else if(key == 'a' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
             if(checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
         }
-        else if(key == 'W')
+        else if(key == 'W' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 20;
              if(checkMove(x_position,y_position - move_speed))y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
         }
-        else if(key == 'S')
+        else if(key == 'S' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 20;
             if(checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
         }
-        else if(key == 'D')
+        else if(key == 'D' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 20;
             if(checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
         }
-        else if(key == 'A')
+        else if(key == 'A' && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 20;
             if(checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
         }
-        else if(key == 'q' && current_ineteraction != -1) sub_scene = (current_ineteraction == 0) ? 14 : current_ineteraction, card_toggle = false, iPlaySound("assets/sounds/click.wav", false, 100);
-        else if(key == 'e' && current_ineteraction > 0 && (current_ineteraction == current_level || current_ineteraction == 0 || current_ineteraction > 7)) scene = current_ineteraction + 6,sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
-        else if(key == ' ' && sub_scene >= 1 && sub_scene <=9) (card_toggle == false) ? card_toggle = true : card_toggle = false, iPlaySound("assets/sounds/click.wav", false, 100);
-        else if(key == 27) (sub_scene == 0) ? sub_scene = 11 : sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
-        else if(key == 'm' && bonus_one == true) (sub_scene == 0) ? sub_scene = 13 : sub_scene = 0, iPlaySound("assets/sounds/paper.wav", false, 100);
+        else if(key == 'q' && current_ineteraction != -1) sub_scene = (current_ineteraction == 0) ? 14 : current_ineteraction, card_toggle = false, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+        else if(key == 'e' && current_ineteraction > 0 && (current_ineteraction == current_level || current_ineteraction == 0 || (current_ineteraction == 8 && bonus_one == false) || (current_ineteraction == 9 && bonus_two == false))) scene = current_ineteraction + 6,sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+        else if(key == ' ' && sub_scene >= 1 && sub_scene <=9) (card_toggle == false) ? card_toggle = true : card_toggle = false, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+        else if(key == 27) (sub_scene == 0) ? sub_scene = 11 : sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+        else if(key == 'm' && bonus_one == true && (sub_scene == 0 || sub_scene == 13)) (sub_scene == 0) ? sub_scene = 13 : sub_scene = 0, iPlaySound("assets/sounds/paper.wav", false, sound_volume[15]);
         break;
     case 7:
         if(key == 'p') win = true;;
@@ -2508,15 +2631,15 @@ void iKeyboard(unsigned char key)
             if(sub_scene < 2) sub_scene++;
             else scene = 17, sub_scene = 0;
 
-            iPlaySound("assets/sounds/click.wav", false, 100);
+            iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
         }
         break;
     case 17:
-        if(key == ' ') scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
+        if(key == ' ') scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
         break;
     }
 
-    if(scene >= 7 && scene <= 15 && key == 27) scene = 6, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, 100);
+    if(scene >= 7 && scene <= 15 && key == 27) scene = 6, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
 }
 
 void iSpecialKeyboard(unsigned char key)
@@ -2524,26 +2647,26 @@ void iSpecialKeyboard(unsigned char key)
     switch(scene)
     {
     case 4:
-        if(key == GLUT_KEY_LEFT && sub_scene != 0) sub_scene--, iPlaySound("assets/sounds/click.wav", false, 100);
-        else if(key == GLUT_KEY_RIGHT && sub_scene != 7) sub_scene++, iPlaySound("assets/sounds/click.wav", false, 100);
+        if(key == GLUT_KEY_LEFT && sub_scene != 0) sub_scene--, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+        else if(key == GLUT_KEY_RIGHT && sub_scene != 7) sub_scene++, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
         break;
     case 6:
-        if(key == GLUT_KEY_UP)
+        if(key == GLUT_KEY_UP && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
              if(checkMove(x_position,y_position - move_speed))y_position -= move_speed, interactionCheck(), direction = 0, last_key_press= 10;
         }
-        else if(key == GLUT_KEY_DOWN)
+        else if(key == GLUT_KEY_DOWN && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
             if(checkMove(x_position,y_position + move_speed)) y_position += move_speed, interactionCheck(), direction = 2, last_key_press= 10;
         }
-        else if(key == GLUT_KEY_RIGHT)
+        else if(key == GLUT_KEY_RIGHT && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
             if(checkMove(x_position - move_speed, y_position)) x_position -= move_speed, interactionCheck(), direction = 3, last_key_press= 10;
         }
-        else if(key == GLUT_KEY_LEFT)
+        else if(key == GLUT_KEY_LEFT && (sub_scene == 0 || sub_scene == 10 || sub_scene == 12 ))
         {
             move_speed = 10;
             if(checkMove(x_position + move_speed, y_position)) x_position += move_speed, interactionCheck(), direction = 1, last_key_press= 10;
@@ -2556,6 +2679,8 @@ int main(int argc, char *argv[])
 {
     glutInit(&argc, argv);
     iInitializeSound();
+    //Starting the Game
+    printf("RESCUE RUSH\nv07.2025\nTeam 2405061 & 2405063\n\n\n");
     //Load Save Game
     save_ptr = fopen("saves/save.txt","r");
     fscanf(save_ptr, "%s\n", stringRead);
@@ -2579,12 +2704,11 @@ int main(int argc, char *argv[])
     else
     {
         save = false;
+        printf("No save game found.\n");
     }
     fclose(save_ptr);
     //Load Image
     loadImages();
-    //Load Sound
-    menu_bgm = iPlaySound("assets/sounds/main_bgm.wav",true, 20);
     iInitialize(1920, 1080, "Rescue Rush");
     return 0;
 }

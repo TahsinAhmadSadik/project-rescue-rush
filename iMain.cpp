@@ -36,6 +36,7 @@ int temp_high_score2;
 bool high_score_set = false;
 bool new_high_score = false;
 int loader_count = 0;
+bool load_successful = false;
 int world_counter = 0;
 
 Image cover,menu,newGame,leaderboard,instruction, world,burn_effect, rain, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,world_map, score_board;
@@ -182,6 +183,7 @@ int this_dart = 0;
 
 void loading_text(void)
 {
+    /*
     if(loader_count != 0) for(int i=0; i<89; i++) printf("\b");
     printf("Loading (");
     if(loader_count%4 == 0) printf("\\) [");
@@ -194,240 +196,97 @@ void loading_text(void)
         else printf(".");
     }
     printf("]");
+    */
+
+    /*
+    iSetColor(0,0,0);
+    iSetLineWidth(4);
+    iRectangle(660*ratio, 40*ratio, 600*ratio, 40*ratio);
+    iFilledRectangle(660*ratio, 40*ratio, 600*loader_count/74*ratio, 40*ratio);
     loader_count++;
+    */
 }
 
 void loadImages()
 {
-    loading_text();
-    iLoadImage(&cover, "assets/images/cover.png");
-    iScaleImage(&cover, ratio);
-    loading_text();
-    iLoadImage(&menu, "assets/images/main_menu.png");
-    iScaleImage(&menu, ratio);
-    loading_text();
-    iLoadImage(&newGame, "assets/images/new_game.png");
-    iScaleImage(&newGame, ratio);
-    loading_text();
-    iLoadImage(&leaderboard, "assets/images/leaderboard.png");
-    iScaleImage(&leaderboard, ratio);
-    loading_text();
-    iLoadImage(&instruction, "assets/images/instruction.png");
-    iScaleImage(&instruction, ratio);
-    loading_text();
-    iLoadImage(&score_board, "assets/images/score.png");
-    iScaleImage(&score_board , ratio);
-    loading_text();
-    //worlds
-    iLoadImage(&main_map, "assets/images/world.png");
-    iScaleImage(&main_map, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&main_map2, "assets/images/world2.png");
-    iScaleImage(&main_map2, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_burn1, "assets/images/worlds/burn1.png");
-    iScaleImage(&world_burn1, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_burn2, "assets/images/worlds/burn2.png");
-    iScaleImage(&world_burn2, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_burn3, "assets/images/worlds/burn3.png");
-    iScaleImage(&world_burn3, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_burn4, "assets/images/worlds/burn4.png");
-    iScaleImage(&world_burn4, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_rain1, "assets/images/worlds/rain1.png");
-    iScaleImage(&world_rain1, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_rain2, "assets/images/worlds/rain2.png");
-    iScaleImage(&world_rain2, 1/0.8*ratio);
-    loading_text();
-    iLoadImage(&world_rain3, "assets/images/worlds/rain3.png");
-    iScaleImage(&world_rain3, 1/0.8*ratio);
-    loading_text();
-    //Hero
-    iLoadImage(&hero1, "assets/images/effects/hero1.png");
-    iScaleImage(&hero1, ratio);
-    loading_text();
-    iLoadImage(&hero2, "assets/images/effects/hero2.png");
-    iScaleImage(&hero2, ratio);
-    loading_text();
-    iLoadImage(&hero3, "assets/images/effects/hero3.png");
-    iScaleImage(&hero3, ratio);
-    loading_text();
-    iLoadImage(&hero4, "assets/images/effects/hero4.png");
-    iScaleImage(&hero4, ratio);
-    loading_text();
-    iLoadImage(&hero5, "assets/images/effects/hero5.png");
-    iScaleImage(&hero5, ratio);
-    loading_text();
-    iLoadImage(&hero6, "assets/images/effects/hero6.png");
-    iScaleImage(&hero6, ratio);
-    loading_text();
-    iLoadImage(&hero7, "assets/images/effects/hero7.png");
-    iScaleImage(&hero7, ratio);
-    loading_text();
-    iLoadImage(&hero8, "assets/images/effects/hero8.png");
-    iScaleImage(&hero8, ratio);
-    loading_text();
-    iLoadImage(&hero9, "assets/images/effects/hero9.png");
-    iScaleImage(&hero9, ratio);
-    loading_text();
-    iLoadImage(&hero10, "assets/images/effects/hero10.png");
-    iScaleImage(&hero10, ratio);
-    loading_text();
-    iLoadImage(&hero11, "assets/images/effects/hero11.png");
-    iScaleImage(&hero11, ratio);
-    loading_text();
-    iLoadImage(&hero12, "assets/images/effects/hero12.png");
-    iScaleImage(&hero12, ratio);
-    loading_text();
-    //scene
-    iLoadImage(&bh, "assets/images/bh.png");
-    iScaleImage(&bh, ratio);
-    loading_text();
-    iLoadImage(&cf, "assets/images/cf.png");
-    iScaleImage(&cf, ratio);
-    loading_text();
-    iLoadImage(&dl, "assets/images/dl.png");
-    iScaleImage(&dl, ratio);
-    loading_text();
-    iLoadImage(&e, "assets/images/e.png");
-    iScaleImage(&e, ratio);
-    loading_text();
-    iLoadImage(&lb, "assets/images/lb.png");
-    iScaleImage(&lb, ratio);
-    loading_text();
-    iLoadImage(&ltl, "assets/images/ltl.png");
-    iScaleImage(&ltl, ratio);
-    loading_text();
-    iLoadImage(&dyc, "assets/images/dyc.png");
-    iScaleImage(&dyc, ratio);
-    loading_text();
-    iLoadImage(&gm, "assets/images/gm.png");
-    iScaleImage(&gm, ratio);
-    loading_text();
-    iLoadImage(&gpc, "assets/images/gpc.png");
-    iScaleImage(&gpc, ratio);
-    loading_text();
-    iLoadImage(&world_map, "assets/images/map.png");
-    iScaleImage(&world_map, ratio);
-    loading_text();
-    //Door Locked Images (Scene 09 : Level 03)
-    iLoadImage(&p1, "assets/images/effects/p1.png");
-    iScaleImage(&p1, ratio);
-    loading_text();
-    iLoadImage(&p2, "assets/images/effects/p2.png");
-    iScaleImage(&p2, ratio);
-    loading_text();
-    iLoadImage(&p3, "assets/images/effects/p3.png");
-    iScaleImage(&p3, ratio);
-    loading_text();
-    iLoadImage(&p4, "assets/images/effects/p4.png");
-    iScaleImage(&p4, ratio);
-    loading_text();
-    iLoadImage(&p5, "assets/images/effects/p5.png");
-    iScaleImage(&p5, ratio);
-    loading_text();
-    iLoadImage(&p6, "assets/images/effects/p6.png");
-    iScaleImage(&p6, ratio);
-    loading_text();
-    iLoadImage(&p7, "assets/images/effects/p7.png");
-    iScaleImage(&p7, ratio);
-    loading_text();
-    iLoadImage(&p8, "assets/images/effects/p8.png");
-    iScaleImage(&p8, ratio);
-    loading_text();
-    iLoadImage(&p9, "assets/images/effects/p9.png");
-    iScaleImage(&p9, ratio);
-    loading_text();
-    iLoadImage(&p10, "assets/images/effects/p10.png");
-    iScaleImage(&p10, ratio);
-    loading_text();
-    iLoadImage(&p11, "assets/images/effects/p11.png");
-    iScaleImage(&p11, ratio);
-    loading_text();
-    iLoadImage(&p12, "assets/images/effects/p12.png");
-    iScaleImage(&p12, ratio);
-    loading_text();
-    //Effects
-    iLoadImage(&pass, "assets/images/effects/pass.png");
-    iScaleImage(&pass, ratio);
-    loading_text();
-    iLoadImage(&fail, "assets/images/effects/fail.png");
-    iScaleImage(&fail, ratio);
-    loading_text();
-    iLoadImage(&dead, "assets/images/effects/dead.png");
-    iScaleImage(&dead, ratio);
-    loading_text();
-    iLoadImage(&valve1, "assets/images/effects/valve1.png");
-    iScaleImage(&valve1, ratio);
-    loading_text();
-    iLoadImage(&valve2, "assets/images/effects/valve2.png");
-    iScaleImage(&valve2, ratio);
-    loading_text();
-    iLoadImage(&dart1, "assets/images/effects/dart1.png");
-    iScaleImage(&dart1, ratio);
-    loading_text();
-    iLoadImage(&dart2, "assets/images/effects/dart2.png");
-    iScaleImage(&dart2, ratio);
-    loading_text();
-    iLoadImage(&marked, "assets/images/effects/marked.png");
-    iScaleImage(&marked, ratio);
-    loading_text();
-    iLoadImage(&cracked, "assets/images/effects/cracked.png");
-    iScaleImage(&cracked, ratio);
-    loading_text();
-    iLoadImage(&one, "assets/images/effects/1.png");
-    iScaleImage(&one, ratio);
-    loading_text();
-    iLoadImage(&two, "assets/images/effects/2.png");
-    iScaleImage(&two, ratio);
-    loading_text();
-    iLoadImage(&three, "assets/images/effects/3.png");
-    iScaleImage(&three, ratio);
-    loading_text();
-    iLoadImage(&four, "assets/images/effects/4.png");
-    iScaleImage(&four, ratio);
-    loading_text();
-    iLoadImage(&five, "assets/images/effects/5.png");
-    iScaleImage(&five, ratio);
-    loading_text();
-    iLoadImage(&six, "assets/images/effects/6.png");
-    iScaleImage(&six, ratio);
-    loading_text();
-    iLoadImage(&zero, "assets/images/effects/0.png");
-    iScaleImage(&zero, ratio);
-    loading_text();
-    iLoadImage(&bulb, "assets/images/effects/bulb.png");
-    iScaleImage(&bulb, ratio);
-    loading_text();
-    iLoadImage(&toolbar, "assets/images/effects/toolbar.png");
-    iScaleImage(&toolbar, ratio);
-    loading_text();
-    iLoadImage(&tool1, "assets/images/effects/tool1.png");
-    iScaleImage(&tool1, ratio);
-    loading_text();
-    iLoadImage(&tool2, "assets/images/effects/tool2.png");
-    iScaleImage(&tool2, ratio);
-    loading_text();
-    iLoadImage(&tool3, "assets/images/effects/tool3.png");
-    iScaleImage(&tool3, ratio);
-    loading_text();
-    iLoadImage(&tool4, "assets/images/effects/tool4.png");
-    iScaleImage(&tool4, ratio);
-    loading_text();
-    iLoadImage(&tool5, "assets/images/effects/tool5.png");
-    iScaleImage(&tool5, ratio);
-    loading_text();
-    iLoadImage(&tool6, "assets/images/effects/tool6.png");
-    iScaleImage(&tool6, ratio);
-    loading_text();
-    iLoadImage(&tool7, "assets/images/effects/tool7.png");
-    iScaleImage(&tool7, ratio);
-    loading_text();
-    printf("\n");
+    switch(loader_count)
+    {
+        case 0: iLoadImage(&cover, "assets/images/cover.png");iScaleImage(&cover, ratio); loader_count++; break;
+        case 1: iLoadImage(&newGame, "assets/images/new_game.png");iScaleImage(&newGame, ratio); loader_count++; break;
+        case 2: iLoadImage(&leaderboard, "assets/images/leaderboard.png");iScaleImage(&leaderboard, ratio); loader_count++; break;
+        case 3: iLoadImage(&instruction, "assets/images/instruction.png");iScaleImage(&instruction, ratio); loader_count++; break;
+        case 4: iLoadImage(&score_board, "assets/images/score.png");iScaleImage(&score_board, ratio); loader_count++; break;
+        case 5: iLoadImage(&main_map, "assets/images/world.png");iScaleImage(&main_map, 1/0.8*ratio); loader_count++; break;
+        case 6: iLoadImage(&main_map2, "assets/images/world2.png");iScaleImage(&main_map2, 1/0.8*ratio); loader_count++; break;
+        case 7: iLoadImage(&menu, "assets/images/main_menu.png");iScaleImage(&menu, ratio); loader_count++; break;
+        case 8: iLoadImage(&world_burn1, "assets/images/worlds/burn1.png"); iScaleImage(&world_burn1, 1/0.8*ratio); loader_count++; break;
+        case 9: iLoadImage(&world_burn2, "assets/images/worlds/burn2.png"); iScaleImage(&world_burn2, 1/0.8*ratio); loader_count++; break;
+        case 10: iLoadImage(&world_burn3, "assets/images/worlds/burn3.png"); iScaleImage(&world_burn3, 1/0.8*ratio); loader_count++; break;
+        case 11: iLoadImage(&world_burn4, "assets/images/worlds/burn4.png"); iScaleImage(&world_burn4, 1/0.8*ratio); loader_count++; break;
+        case 12: iLoadImage(&world_rain1, "assets/images/worlds/rain1.png"); iScaleImage(&world_rain1, 1/0.8*ratio); loader_count++; break;
+        case 13: iLoadImage(&world_rain2, "assets/images/worlds/rain2.png"); iScaleImage(&world_rain2, 1/0.8*ratio); loader_count++; break;
+        case 14: iLoadImage(&world_rain3, "assets/images/worlds/rain3.png"); iScaleImage(&world_rain3, 1/0.8*ratio); loader_count++; break;
+        case 15: iLoadImage(&hero1, "assets/images/effects/hero1.png"); iScaleImage(&hero1, ratio); loader_count++; break;
+        case 16: iLoadImage(&hero2, "assets/images/effects/hero2.png"); iScaleImage(&hero2, ratio); loader_count++; break;
+        case 17: iLoadImage(&hero3, "assets/images/effects/hero3.png"); iScaleImage(&hero3, ratio); loader_count++; break;
+        case 18: iLoadImage(&hero4, "assets/images/effects/hero4.png"); iScaleImage(&hero4, ratio); loader_count++; break;
+        case 19: iLoadImage(&hero5, "assets/images/effects/hero5.png"); iScaleImage(&hero5, ratio); loader_count++; break;
+        case 20: iLoadImage(&hero6, "assets/images/effects/hero6.png"); iScaleImage(&hero6, ratio); loader_count++; break;
+        case 21: iLoadImage(&hero7, "assets/images/effects/hero7.png"); iScaleImage(&hero7, ratio); loader_count++; break;
+        case 22: iLoadImage(&hero8, "assets/images/effects/hero8.png"); iScaleImage(&hero8, ratio); loader_count++; break;
+        case 23: iLoadImage(&hero9, "assets/images/effects/hero9.png"); iScaleImage(&hero9, ratio); loader_count++; break;
+        case 24: iLoadImage(&hero10, "assets/images/effects/hero10.png"); iScaleImage(&hero10, ratio); loader_count++; break;
+        case 25: iLoadImage(&hero11, "assets/images/effects/hero11.png"); iScaleImage(&hero11, ratio); loader_count++; break;
+        case 26: iLoadImage(&hero12, "assets/images/effects/hero12.png"); iScaleImage(&hero12, ratio); loader_count++; break;
+        case 27: iLoadImage(&bh, "assets/images/bh.png"); iScaleImage(&bh, ratio); loader_count++; break;
+        case 28: iLoadImage(&cf, "assets/images/cf.png"); iScaleImage(&cf, ratio); loader_count++; break;
+        case 29: iLoadImage(&dl, "assets/images/dl.png"); iScaleImage(&dl, ratio); loader_count++; break;
+        case 30: iLoadImage(&e, "assets/images/e.png"); iScaleImage(&e, ratio); loader_count++; break;
+        case 31: iLoadImage(&lb, "assets/images/lb.png"); iScaleImage(&lb, ratio); loader_count++; break;
+        case 32: iLoadImage(&ltl, "assets/images/ltl.png"); iScaleImage(&ltl, ratio); loader_count++; break;
+        case 33: iLoadImage(&dyc, "assets/images/dyc.png"); iScaleImage(&dyc, ratio); loader_count++; break;
+        case 34: iLoadImage(&gm, "assets/images/gm.png"); iScaleImage(&gm, ratio); loader_count++; break;
+        case 35: iLoadImage(&gpc, "assets/images/gpc.png"); iScaleImage(&gpc, ratio); loader_count++; break;
+        case 36: iLoadImage(&world_map, "assets/images/map.png"); iScaleImage(&world_map, ratio); loader_count++; break;
+        case 37: iLoadImage(&p1, "assets/images/effects/p1.png"); iScaleImage(&p1, ratio); loader_count++; break;
+        case 38: iLoadImage(&p2, "assets/images/effects/p2.png"); iScaleImage(&p2, ratio); loader_count++; break;
+        case 39: iLoadImage(&p3, "assets/images/effects/p3.png"); iScaleImage(&p3, ratio); loader_count++; break;
+        case 40: iLoadImage(&p4, "assets/images/effects/p4.png"); iScaleImage(&p4, ratio); loader_count++; break;
+        case 41: iLoadImage(&p5, "assets/images/effects/p5.png"); iScaleImage(&p5, ratio); loader_count++; break;
+        case 42: iLoadImage(&p6, "assets/images/effects/p6.png"); iScaleImage(&p6, ratio); loader_count++; break;
+        case 43: iLoadImage(&p7, "assets/images/effects/p7.png"); iScaleImage(&p7, ratio); loader_count++; break;
+        case 44: iLoadImage(&p8, "assets/images/effects/p8.png"); iScaleImage(&p8, ratio); loader_count++; break;
+        case 45: iLoadImage(&p9, "assets/images/effects/p9.png"); iScaleImage(&p9, ratio); loader_count++; break;
+        case 46: iLoadImage(&p10, "assets/images/effects/p10.png"); iScaleImage(&p10, ratio); loader_count++; break;
+        case 47: iLoadImage(&p11, "assets/images/effects/p11.png"); iScaleImage(&p11, ratio); loader_count++; break;
+        case 48: iLoadImage(&p12, "assets/images/effects/p12.png"); iScaleImage(&p12, ratio); loader_count++; break;
+        case 49: iLoadImage(&pass, "assets/images/effects/pass.png"); iScaleImage(&pass, ratio); loader_count++; break;
+        case 50: iLoadImage(&fail, "assets/images/effects/fail.png"); iScaleImage(&fail, ratio); loader_count++; break;
+        case 51: iLoadImage(&dead, "assets/images/effects/dead.png"); iScaleImage(&dead, ratio); loader_count++; break;
+        case 52: iLoadImage(&valve1, "assets/images/effects/valve1.png"); iScaleImage(&valve1, ratio); loader_count++; break;
+        case 53: iLoadImage(&valve2, "assets/images/effects/valve2.png"); iScaleImage(&valve2, ratio); loader_count++; break;
+        case 54: iLoadImage(&dart1, "assets/images/effects/dart1.png"); iScaleImage(&dart1, ratio); loader_count++; break;
+        case 55: iLoadImage(&dart2, "assets/images/effects/dart2.png"); iScaleImage(&dart2, ratio); loader_count++; break;
+        case 56: iLoadImage(&marked, "assets/images/effects/marked.png"); iScaleImage(&marked, ratio); loader_count++; break;
+        case 57: iLoadImage(&cracked, "assets/images/effects/cracked.png"); iScaleImage(&cracked, ratio); loader_count++; break;
+        case 58: iLoadImage(&one, "assets/images/effects/1.png"); iScaleImage(&one, ratio); loader_count++; break;
+        case 59: iLoadImage(&two, "assets/images/effects/2.png"); iScaleImage(&two, ratio); loader_count++; break;
+        case 60: iLoadImage(&three, "assets/images/effects/3.png"); iScaleImage(&three, ratio); loader_count++; break;
+        case 61: iLoadImage(&four, "assets/images/effects/4.png"); iScaleImage(&four, ratio); loader_count++; break;
+        case 62: iLoadImage(&five, "assets/images/effects/5.png"); iScaleImage(&five, ratio); loader_count++; break;
+        case 63: iLoadImage(&six, "assets/images/effects/6.png"); iScaleImage(&six, ratio); loader_count++; break;
+        case 64: iLoadImage(&zero, "assets/images/effects/0.png"); iScaleImage(&zero, ratio); loader_count++; break;
+        case 65: iLoadImage(&bulb, "assets/images/effects/bulb.png"); iScaleImage(&bulb, ratio); loader_count++; break;
+        case 66: iLoadImage(&toolbar, "assets/images/effects/toolbar.png"); iScaleImage(&toolbar, ratio); loader_count++; break;
+        case 67: iLoadImage(&tool1, "assets/images/effects/tool1.png"); iScaleImage(&tool1, ratio); loader_count++; break;
+        case 68: iLoadImage(&tool2, "assets/images/effects/tool2.png"); iScaleImage(&tool2, ratio); loader_count++; break;
+        case 69: iLoadImage(&tool3, "assets/images/effects/tool3.png"); iScaleImage(&tool3, ratio); loader_count++; break;
+        case 70: iLoadImage(&tool4, "assets/images/effects/tool4.png"); iScaleImage(&tool4, ratio); loader_count++; break;
+        case 71: iLoadImage(&tool5, "assets/images/effects/tool5.png"); iScaleImage(&tool5, ratio); loader_count++; break;
+        case 72: iLoadImage(&tool6, "assets/images/effects/tool6.png"); iScaleImage(&tool6, ratio); loader_count++; break;
+        case 73: iLoadImage(&tool7, "assets/images/effects/tool7.png"); iScaleImage(&tool7, ratio); loader_count++; break;
+        default: load_successful = true;
+    }
 }
 
 void sound_handle(int idx)
@@ -850,7 +709,21 @@ void iDraw()
     switch(scene)
     {
     case 0:
-        iShowLoadedImage(0,0,&cover);
+        //iShowLoadedImage(0,0,&cover);
+        if(loader_count > 0 || load_successful == true)
+        {
+            iShowLoadedImage(0,0,&cover);
+        }
+        if(load_successful == false)
+        {
+            loadImages();
+            iSetColor(170,202,79);
+            iSetLineWidth(4);
+            iFilledRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
+            iSetColor(255,255,255);
+            iRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
+            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/74*ratio, 40*ratio);
+        }
         sound_handle(0);
         break;
     case 1:
@@ -2178,7 +2051,7 @@ void iDraw()
             fclose(save_ptr);
             //High Score Setup
             score_ptr = fopen("saves/score.txt", "r");
-            for(int i=0; i<5; i++) fscanf(score_ptr,"%s\n", &master_rescuer[i]),fscanf(score_ptr,"%d\n", &high_score[i]);
+            for(int i=0; i<5; i++) fscanf(score_ptr,"%s\n", master_rescuer[i]),fscanf(score_ptr,"%d\n", &high_score[i]);
             fclose(score_ptr);
             fopen("saves/score.txt", "w");
             temp_high_score1 = score;
@@ -2517,7 +2390,7 @@ void iKeyboard(unsigned char key)
     switch(scene)
     {
     case 0:
-        if(key == ' ') scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
+        if(key == ' ' && load_successful == true) scene = 1, sub_scene = 0, iPlaySound("assets/sounds/click.wav", false, sound_volume[5]);
         break;
     case 2:
         if(key == 27) scene = 1, sub_scene = 0;
@@ -2707,8 +2580,7 @@ int main(int argc, char *argv[])
         printf("No save game found.\n");
     }
     fclose(save_ptr);
-    //Load Image
-    loadImages();
+
     iInitialize(1920, 1080, "Rescue Rush");
     return 0;
 }

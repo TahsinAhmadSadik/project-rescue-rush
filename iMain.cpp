@@ -39,7 +39,7 @@ int loader_count = 0;
 bool load_successful = false;
 int world_counter = 0;
 
-Image cover,menu,newGame,leaderboard,instruction, world,burn_effect, rain, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,world_map, score_board;
+Image cover,menu,newGame,leaderboard,instruction, world,burn_effect, rain, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,maps, score_board;
 Image hero, hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9, hero10, hero11, hero12;
 Image pass, fail, dead, valve1, valve2, dart1, dart2, bulb;
 Image marked,cracked,one,two,three,four,five,six,zero;
@@ -48,7 +48,7 @@ Image main_map,main_map2,world_burn1,world_burn2,world_burn3,world_burn4,world_r
 FILE *score_ptr, *save_ptr;
 
 //Level timer
-int level_timer_list[6] = {1500,10000,3000,3000,8000,6000};
+int level_timer_list[6] = {3000,20000,6000,6000,16000,12000};
 int score_list[7] = {500, 2000, 1000, 500, 2000, 1500, 1000};
 int high_score[5];
 char master_rescuer [5][31];
@@ -181,32 +181,6 @@ int dart_random;
 int merchant_score = 0;
 int this_dart = 0;
 
-void loading_text(void)
-{
-    /*
-    if(loader_count != 0) for(int i=0; i<89; i++) printf("\b");
-    printf("Loading (");
-    if(loader_count%4 == 0) printf("\\) [");
-    else if(loader_count%4 == 1) printf("|) [");
-    else if(loader_count%4 == 2) printf("/) [");
-    else printf("-) [");
-    for(int i=0; i<75; i++)
-    {
-        if(i<=loader_count) printf("|");
-        else printf(".");
-    }
-    printf("]");
-    */
-
-    /*
-    iSetColor(0,0,0);
-    iSetLineWidth(4);
-    iRectangle(660*ratio, 40*ratio, 600*ratio, 40*ratio);
-    iFilledRectangle(660*ratio, 40*ratio, 600*loader_count/74*ratio, 40*ratio);
-    loader_count++;
-    */
-}
-
 void loadImages()
 {
     switch(loader_count)
@@ -247,7 +221,7 @@ void loadImages()
         case 33: iLoadImage(&dyc, "assets/images/dyc.png"); iScaleImage(&dyc, ratio); loader_count++; break;
         case 34: iLoadImage(&gm, "assets/images/gm.png"); iScaleImage(&gm, ratio); loader_count++; break;
         case 35: iLoadImage(&gpc, "assets/images/gpc.png"); iScaleImage(&gpc, ratio); loader_count++; break;
-        case 36: iLoadImage(&world_map, "assets/images/map.png"); iScaleImage(&world_map, ratio); loader_count++; break;
+        case 36: iLoadImage(&maps, "assets/images/map.png"); iScaleImage(&maps, ratio); loader_count++; break;
         case 37: iLoadImage(&p1, "assets/images/effects/p1.png"); iScaleImage(&p1, ratio); loader_count++; break;
         case 38: iLoadImage(&p2, "assets/images/effects/p2.png"); iScaleImage(&p2, ratio); loader_count++; break;
         case 39: iLoadImage(&p3, "assets/images/effects/p3.png"); iScaleImage(&p3, ratio); loader_count++; break;
@@ -1176,7 +1150,7 @@ void iDraw()
             iSetColor(0,0,0);
             iTextBold(20*ratio,20*ratio, "M", GLUT_BITMAP_HELVETICA_18);
             iText(70*ratio,20*ratio, "Close Map", GLUT_BITMAP_HELVETICA_18);
-            iShowLoadedImage(249*ratio,137.4*ratio,&world_map);
+            iShowLoadedImage(249*ratio,137.4*ratio,&maps);
             break;
         case 14:
             iShowImage(710*ratio, 390*ratio, "assets/images/cards/hh.png");

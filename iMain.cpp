@@ -41,10 +41,10 @@ int world_counter = 0;
 
 Image cover,menu,newGame,leaderboard,instruction, world,burn_effect, rain, bh, cf, dl, e,lb, ltl, dyc, gm, gpc,maps, score_board;
 Image hero, hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9, hero10, hero11, hero12;
-Image pass, fail, dead, valve1, valve2, dart1, dart2, bulb;
+Image pass, fail, dead, valve1, valve2, dart1, dart2, dart3, dart4, bulb;
 Image marked,cracked,one,two,three,four,five,six,zero;
 Image toolbar,tool1,tool2,tool3,tool4,tool5,tool6,tool7;
-Image main_map,main_map2,world_burn1,world_burn2,world_burn3,world_burn4,world_rain1, world_rain2, world_rain3;
+Image main_map,main_map2,world_burn1,world_burn2,world_burn3,world_burn4,world_rain1, world_rain2, world_rain3, dart_a, dart_b;
 FILE *score_ptr, *save_ptr;
 
 //Level timer
@@ -168,12 +168,14 @@ int aim_x = 0;
 int aim_x_dir = 1;
 int aim_y = 346;
 int aim_y_dir = 1;
+int hero_dart_x = 0;
+int hero_dart_y = 0;
 int dart_score = 0;
 char dart_score_s[3];
 int r, point;
 int deg;
 int dart_point[20] = {6,13,4,18,1,20,5,12,9,14,11,8,16,7,19,3,17,2,15,10};
-int aim_move_speed = 4;
+int aim_move_speed = 8;
 int dart_counter = 200;
 int gamble_move_x[20] = {2,-164,-64,256,172,2,22,-22,148,230,16,2,0,82,-272,-44,206,156,2,144};
 int gamble_move_y[20] = {0,-10,148,234,216,0,262,-158,-88,144,-10,0,278,-268,54,-214,60,-118,0,166};
@@ -259,6 +261,8 @@ void loadImages()
         case 71: iLoadImage(&tool5, "assets/images/effects/tool5.png"); iScaleImage(&tool5, ratio); loader_count++; break;
         case 72: iLoadImage(&tool6, "assets/images/effects/tool6.png"); iScaleImage(&tool6, ratio); loader_count++; break;
         case 73: iLoadImage(&tool7, "assets/images/effects/tool7.png"); iScaleImage(&tool7, ratio); loader_count++; break;
+        case 74: iLoadImage(&dart3, "assets/images/effects/dart3.png"); iScaleImage(&dart3, ratio); loader_count++; break;
+        case 75: iLoadImage(&dart4, "assets/images/effects/dart4.png"); iScaleImage(&dart4, ratio); loader_count++; break;
         default: load_successful = true;
     }
 }
@@ -616,15 +620,20 @@ void pieceFocus(void)
 
 
 //Gambler Merchant Functions (Scene 14 : Level B1)
-void dart_animate(int init)
+void dart_animate(int init, int state)
 {
-    if(dart_counter > (init + 90)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart1);
-    else if(dart_counter > (init + 80)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart2);
-    else if(dart_counter > (init + 70)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart1);
-    else if(dart_counter > (init + 60)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart2);
-    else if(dart_counter > (init + 50)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart1);
-    else if(dart_counter > (init + 40)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart2);
-    else if(dart_counter > (init + 00)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart1);
+    if(state == 0) dart_a = dart1, dart_b = dart2;
+    else dart_a = dart3, dart_b = dart4;
+
+    if(state == 1) iShowLoadedImage((1065+hero_dart_x)*ratio, (224+hero_dart_y)*ratio, &dart1);
+
+    if(dart_counter > (init + 90)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_a);
+    else if(dart_counter > (init + 80)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_b);
+    else if(dart_counter > (init + 70)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_a);
+    else if(dart_counter > (init + 60)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_b);
+    else if(dart_counter > (init + 50)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_a);
+    else if(dart_counter > (init + 40)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_b);
+    else if(dart_counter > (init + 00)) iShowLoadedImage((1065+aim_x)*ratio, (224+aim_y)*ratio, &dart_a);
 }
 
 int dart_score_count(void)
@@ -696,7 +705,7 @@ void iDraw()
             iFilledRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
             iSetColor(255,255,255);
             iRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
-            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/74*ratio, 40*ratio);
+            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/76*ratio, 40*ratio);
         }
         sound_handle(0);
         break;
@@ -1907,13 +1916,14 @@ void iDraw()
                 }
 
                 if(dart_counter != 0) dart_counter--;
-                if(dart_counter > 100) dart_animate(100);
-
+                if(dart_counter > 100) dart_animate(100,0);
                 //opponent
 
 
                 if(dart_counter == 100)
                 {
+                    hero_dart_x = aim_x;
+                    hero_dart_y = aim_y;
                     srand(time(NULL));
                     dart_random = rand()%20;
                     aim_x = 346+gamble_move_x[dart_random];
@@ -1924,7 +1934,7 @@ void iDraw()
                     aim_y += 346;
                 }
 
-                if(dart_counter <= 100) dart_animate(0);
+                if(dart_counter <= 100) dart_animate(0,1);
                 if(dart_counter == 1)
                 {
                     aim_x = 0;

@@ -44,6 +44,8 @@ Image hero, hero1, hero2, hero3, hero4, hero5, hero6, hero7, hero8, hero9, hero1
 Image pass, fail, dead, valve1, valve2, dart1, dart2, dart3, dart4, bulb;
 Image marked,cracked,one,two,three,four,five,six,zero;
 Image toolbar,tool1,tool2,tool3,tool4,tool5,tool6,tool7;
+Image move1, move2, move3, move4, move5, hero_maze, move_img;
+Image hero_run1, hero_run2, hero_jump, cat1,cat2,cat3,cat4, obs1,obs2,obs3,obs4;
 Image main_map,main_map2,world_burn1,world_burn2,world_burn3,world_burn4,world_rain1, world_rain2, world_rain3, dart_a, dart_b;
 FILE *score_ptr, *save_ptr;
 
@@ -127,6 +129,28 @@ bool failed = false;
 Image p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12;
 int pieces[12] = {6,9,2,7,4,11,3,12,1,8,10,5};
 
+//Lost in a Basement (Scene 11 : Level 05)
+int moves[7] = {0}; //0 null, 1 forward, 2 backward, 3 left, 4 right, 5 loop
+int move_cursor = 0;
+int grid_row = 9; //max 11
+int grid_col = 10; //max 12
+int play_move = 0;
+int obstacle[11][12]= {
+    0,0,0,0,0,0,1,1,0,0,0,0,
+    0,1,1,1,0,0,0,0,0,0,1,1,
+    0,0,0,0,0,1,0,0,0,0,0,1,
+    1,0,0,1,0,0,0,0,1,1,0,0,
+    0,0,0,0,0,1,0,0,0,1,0,0,
+    0,0,1,1,0,0,1,1,0,0,0,0,
+    1,0,0,0,0,0,0,0,0,1,1,0,
+    1,0,1,0,1,1,0,1,0,0,0,1,
+    0,0,0,0,0,0,0,0,0,1,0,1,
+    0,1,1,1,0,0,1,0,0,0,0,0,
+    0,0,1,0,0,0,0,0,0,0,1,1
+};
+int reset_counter = 0; //max 200
+int move_counter = 0; //max 100
+
 //Let There be Light (Scene 12 : Level 06)
 int bulb_pos[7][2] = {
     -1,-1,
@@ -182,6 +206,14 @@ int gamble_move_y[20] = {0,-10,148,234,216,0,262,-158,-88,144,-10,0,278,-268,54,
 int dart_random;
 int merchant_score = 0;
 int this_dart = 0;
+
+//Get Pet Cat Variables (Scene 15 : Level B2)
+int obs[8];
+int obs_x[8];
+int cat_x = 1800;
+bool jump = false;
+int jump_counter = 0;
+int anim_counter = 0;
 
 void loadImages()
 {
@@ -263,6 +295,23 @@ void loadImages()
         case 73: iLoadImage(&tool7, "assets/images/effects/tool7.png"); iScaleImage(&tool7, ratio); loader_count++; break;
         case 74: iLoadImage(&dart3, "assets/images/effects/dart3.png"); iScaleImage(&dart3, ratio); loader_count++; break;
         case 75: iLoadImage(&dart4, "assets/images/effects/dart4.png"); iScaleImage(&dart4, ratio); loader_count++; break;
+        case 76: iLoadImage(&move1, "assets/images/effects/up.png"); iScaleImage(&move1, ratio); loader_count++; break;
+        case 77: iLoadImage(&move2, "assets/images/effects/down.png"); iScaleImage(&move2, ratio); loader_count++; break;
+        case 78: iLoadImage(&move3, "assets/images/effects/left.png"); iScaleImage(&move3, ratio); loader_count++; break;
+        case 79: iLoadImage(&move4, "assets/images/effects/right.png"); iScaleImage(&move4, ratio); loader_count++; break;
+        case 80: iLoadImage(&move5, "assets/images/effects/loop.png"); iScaleImage(&move5, ratio); loader_count++; break;
+        case 81: iLoadImage(&hero_maze, "assets/images/effects/hero_maze.png"); iScaleImage(&hero_maze, ratio); loader_count++; break;
+        case 82: iLoadImage(&hero_run1, "assets/images/effects/hero_run1.png"); iScaleImage(&hero_run1, ratio); loader_count++; break;
+        case 83: iLoadImage(&hero_run2, "assets/images/effects/hero_run2.png"); iScaleImage(&hero_run2, ratio); loader_count++; break;
+        case 84: iLoadImage(&hero_jump, "assets/images/effects/hero_jump.png"); iScaleImage(&hero_jump, ratio); loader_count++; break;
+        case 85: iLoadImage(&cat1, "assets/images/effects/cat1.png"); iScaleImage(&cat1, ratio); loader_count++; break;
+        case 86: iLoadImage(&cat2, "assets/images/effects/cat2.png"); iScaleImage(&cat2, ratio); loader_count++; break;
+        case 87: iLoadImage(&cat3, "assets/images/effects/cat3.png"); iScaleImage(&cat3, ratio); loader_count++; break;
+        case 88: iLoadImage(&cat4, "assets/images/effects/cat4.png"); iScaleImage(&cat4, ratio); loader_count++; break;
+        case 89: iLoadImage(&obs1, "assets/images/effects/box.png"); iScaleImage(&obs1, ratio); loader_count++; break;
+        case 90: iLoadImage(&obs2, "assets/images/effects/drum.png"); iScaleImage(&obs2, ratio); loader_count++; break;
+        case 91: iLoadImage(&obs3, "assets/images/effects/cart.png"); iScaleImage(&obs3, ratio); loader_count++; break;
+        case 92: iLoadImage(&obs4, "assets/images/effects/bush.png"); iScaleImage(&obs4, ratio); loader_count++; break;
         default: load_successful = true;
     }
 }
@@ -348,6 +397,10 @@ void newGameInit(void)
     saveGame();
     scene = 5;
     sub_scene = 0;
+    x_position = -1920;
+    y_position = -1080;
+    win = false;
+    win_counter = 300;
 }
 
 void getPosition(void)
@@ -391,6 +444,7 @@ void interactionCheck(void)
         if(x_position >= interaction[c][1] && x_position <= interaction[c][0] && y_position >= interaction[c][2] && y_position <= interaction[c][3])
         {
             current_ineteraction = c;
+            if(current_ineteraction == 9) current_ineteraction = -1;
             break;
         }
     }
@@ -618,6 +672,35 @@ void pieceFocus(void)
     }
 }
 
+//Lost in a Basement (Scene 11 : Level 05)
+void move_maze(int a)
+{
+    if(moves[a] == 0 || a == 7)
+    {
+        iPlaySound("assets/sounds/error.wav", false, sound_volume[9]);
+        Sleep(200);
+        play_move = 0;
+        grid_row = 9;
+        grid_col = 10;
+        move_cursor = 0;
+        return;
+    }
+    else if(moves[a] == 1 && obstacle[grid_row-1][grid_col] == 0 && grid_row-1 >= 0) grid_row--, move_cursor++;
+    else if(moves[a] == 2 && obstacle[grid_row+1][grid_col] == 0 && grid_row+1 < 11) grid_row++, move_cursor++;
+    else if(moves[a] == 3 && obstacle[grid_row][grid_col-1] == 0 && grid_row-1 >= 0) grid_col--, move_cursor++;
+    else if(moves[a] == 4 && obstacle[grid_row][grid_col+1] == 0 && grid_row+1 < 12) grid_col++, move_cursor++;
+    else if(moves[a] == 5) move_cursor = 0;
+    else
+    {
+        iPlaySound("assets/sounds/error.wav", false, sound_volume[9]);
+        Sleep(200);
+        play_move = 0;
+        grid_row = 9;
+        grid_col = 10;
+        move_cursor = 0;
+        return;
+    }
+}
 
 //Gambler Merchant Functions (Scene 14 : Level B1)
 void dart_animate(int init, int state)
@@ -705,7 +788,7 @@ void iDraw()
             iFilledRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
             iSetColor(255,255,255);
             iRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
-            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/76*ratio, 40*ratio);
+            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/93*ratio, 40*ratio);
         }
         sound_handle(0);
         break;
@@ -1566,6 +1649,34 @@ void iDraw()
         //Lost in a Basement
         iShowLoadedImage(0,0,&lb);
 
+        for(int i=0; i<7; i++)
+        {
+            if(moves[i] == 0) break;
+            else if(moves[i] == 1) move_img = move1;
+            else if(moves[i] == 2) move_img = move2;
+            else if(moves[i] == 3) move_img = move3;
+            else if(moves[i] == 4) move_img = move4;
+            else if(moves[i] == 5) move_img = move5;
+
+            iShowLoadedImage((94+i*92)*ratio, 552*ratio, &move_img);
+        }
+
+        iSetColor(255,255,255);
+        iSetLineWidth(2);
+        if(play_move == 1 && win == false)
+        {
+            move_maze(move_cursor);
+            iRectangle((94+move_cursor*92)*ratio, 552*ratio, 80*ratio, 80*ratio);
+        }
+        else if(win == false && sub_focus >= 0) iRectangle((94+sub_focus*92)*ratio, 458*ratio, 80*ratio, 80*ratio);
+
+        if(grid_row == 0 && grid_col == 4) win = true;
+
+        if(win == false) iShowLoadedImage((796+92*grid_col)*ratio, (968-94*grid_row)*ratio, &hero_maze);
+        else iShowLoadedImage((796+92*4)*ratio, (968-94*0)*ratio, &hero_maze);
+
+        if(play_move == 1 && win == false) Sleep(150);
+
         if(win == true)
         {
             if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
@@ -1997,7 +2108,33 @@ void iDraw()
         iText(500*ratio, 380*ratio, dart_score_s, GLUT_BITMAP_TIMES_ROMAN_24);
         break;
     case 15:
+        if(load_successful == false)
+        {
+            loadImages();
+            iSetColor(170,202,79);
+            iSetLineWidth(4);
+            iFilledRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
+            iSetColor(255,255,255);
+            iRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
+            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/93*ratio, 40*ratio);
+        }
         iShowLoadedImage(0,0,&gpc);
+
+        if(anim_counter == 3) anim_counter = 0;
+        else anim_counter++;
+
+        if(anim_counter%2 == 0) iShowLoadedImage(64*ratio, 247*ratio, &hero_run1);
+        else iShowLoadedImage(64*ratio, 247*ratio, &hero_run2);
+
+        if(anim_counter == 0) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat1);
+        else if(anim_counter == 1) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat2);
+        else if(anim_counter == 2) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat3);
+        else if(anim_counter == 3) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat4);
+
+        if(win == false) cat_x--, Sleep(100);
+
+
+
         break;
     case 16:
         sound_handle(3);
@@ -2170,6 +2307,23 @@ void iMouseMove(int mx, int my)
         }
         else sub_focus = 0;
         break;
+    case 11:
+        iSetColor(255,255,255);
+        iSetLineWidth(2);
+        if(my < 538*ratio && my > 458*ratio && play_move == 0 && win == false)
+        {
+            for(int i=0; i<7; i++)
+            {
+                if(mx > (94+i*92)*ratio && mx < (94+i*92+80)*ratio)
+                {
+                    sub_focus = i;
+                    break;
+                }
+                else sub_focus = -1;
+            }
+        }
+        else sub_focus = -1;
+        break;
     case 12:
         //Let There Be Light
         sub_focus = 0;
@@ -2315,6 +2469,43 @@ void iMouse(int button, int state, int mx, int my)
                 else prev_focus = 0, focus = 0;
             }
             else focus = 0;
+            break;
+        case 11:
+            if(my < 538*ratio && my > 458*ratio && win == false)
+            {
+                for(int i=0; i<5; i++)
+                {
+                    if(mx > (94+i*92)*ratio && mx < (94+i*92+80)*ratio  && play_move == 0 )
+                    {
+                        for(int j=0; j<7; j++)
+                        {
+                            if(moves[j] == 0)
+                            {
+                                moves[j] = i+1;
+                                break;
+                            }
+                        }
+                        break;
+                    }
+                }
+
+                if(mx > (94+5*92)*ratio && mx < (94+5*92+80)*ratio)
+                {
+                    play_move = 0;
+                    grid_col = 10;
+                    grid_row = 9;
+                    move_cursor = 0;
+                    for(int j=0; j<7; j++)
+                    {
+                        moves[j] = 0;
+                    }
+                }
+                else if(mx > (94+6*92)*ratio && mx < (94+6*92+80)*ratio && play_move == 0)
+                {
+                    //play
+                    play_move = 1;
+                }
+            }
             break;
         case 12:
             //Let There Be Light

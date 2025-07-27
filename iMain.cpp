@@ -10,7 +10,7 @@
 
 bool init = false;
 float ratio = 0.8; //zoomed 0.8, full 1
-int scene = 8;
+int scene = 0;
 int sub_scene = 0;
 int prev_sub_scene = 0;
 double tri_x[3];
@@ -123,6 +123,7 @@ int step_count = 1;
 int marker_count = 0;
 int crack_count = 0;
 bool failed = false;
+bool paused = false;
 
 //Door Locked Variables (Scene 09 : Level 03)
 Image p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12;
@@ -972,7 +973,7 @@ void iDraw()
             break;
         case 2:
             iTextBold(400*ratio, 650*ratio, "Amid the chaos and devastation, a brave figure emerged. Though only a man with no special powers, he", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "braved the storm�s fury to guide stranded villagers to safety and rescue the injured from beneath ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "braved the storms fury to guide stranded villagers to safety and rescue the injured from beneath ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 590*ratio, "collapsed homes.  With nothing but courage in his heart, he became the unlikely hero his village ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 560*ratio, "desperately needed. ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 530*ratio, "Hail to our HERO. Hail to", GLUT_BITMAP_TIMES_ROMAN_24);
@@ -1371,7 +1372,6 @@ void iDraw()
         break;
     case 8:
         //Cracked Floor
-        loadImages();
         iShowLoadedImage(0,0,&cf);
         //Hover
         if(win == false && failed == false)
@@ -1450,6 +1450,8 @@ void iDraw()
                 }
             }
         }
+
+        if(paused == true) win = true;
 
         if(win == true)
         {
@@ -1998,7 +2000,7 @@ void iDraw()
         iFilledRectangle(cursor_pos*ratio, 482*ratio, 11*ratio, 27*ratio);
 
         //winning
-        if(r1+b1 == 13) win = true;
+        if(r1+b1-b2 == 13) win = true;
         if(win == true)
         {
             if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
@@ -2148,19 +2150,19 @@ void iDraw()
         {
         case 0:
             iTextBold(400*ratio, 650*ratio, "As dawn broke over the ruined village, the distant thump of helicopter blades echoed through the morning ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "mist. Our hero stood atop the hill, waving a bright cloth tied to a bamboo pole�the signal he�d prepared ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "mist. Our hero stood atop the hill, waving a bright cloth tied to a bamboo pole the signal he prepared ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 590*ratio, "overnight. The rescue team circled once, then descended into the makeshift clearing. Medics poured out,", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 560*ratio, "bringing supplies, stretchers, and hope", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         case 1:
             iTextBold(400*ratio, 650*ratio, "Villagers cheered, cried, and clung to one another as they were guided to safety. The hero moved among", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 620*ratio, "them, pointing out the injured, lifting children, and reassuring the fearful. One of the rescuers", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "approached him and asked, �Was it you who called for help?� He nodded, exhausted but steady. �You saved", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 560*ratio, "a village,� the rescuer said.", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "approached him and asked, Was it you who called for help? He nodded, exhausted but steady. You saved", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "a village, the rescuer said.", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         case 2:
             iTextBold(400*ratio, 650*ratio, "The hero looked around at the people he had protected.", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "�No,� he replied softly, �we saved each other.�", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "No,he replied softly, we saved each other.", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         }
         iText(850*ratio, 400*ratio, "Press \"Space\" to continue.", GLUT_BITMAP_HELVETICA_18);
@@ -2220,7 +2222,7 @@ void iDraw()
         if(bonus_two == true) score_s[0]++;
         score_s[1] = '\0';
         iTextAdvanced(1247*ratio,441*ratio,score_s, 0.2, 3);
-        iTextAdvanced(1270*ratio,441*ratio,"/2", 0.2, 3);
+        iTextAdvanced(1270*ratio,441*ratio,"/1", 0.2, 3);
         score_s[0] = (score/10000)%10 + '0';
         score_s[1] = (score/1000)%10 + '0';
         score_s[2] = (score/100)%10 + '0';
@@ -2674,7 +2676,7 @@ void iKeyboard(unsigned char key)
         if(key == 'p') win = true;;
         break;
     case 8:
-        if(key == 'p') win = true;
+        if(key == 'p') paused = true;
         if(key == ' ') tool = (tool == false) ? true : false;
         break;
     case 9:

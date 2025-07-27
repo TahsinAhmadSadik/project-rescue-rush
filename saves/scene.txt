@@ -28,7 +28,7 @@
 12 : Let There Be Light
 13 : Do You Copy
 14 : Gambler Merchant
-15 : Get Pet Cat
+15 : Settings
 16 : Outro
 17 : Score
 

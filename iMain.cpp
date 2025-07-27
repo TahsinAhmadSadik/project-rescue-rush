@@ -10,7 +10,7 @@
 
 bool init = false;
 float ratio = 0.8; //zoomed 0.8, full 1
-int scene = 0;
+int scene = 8;
 int sub_scene = 0;
 int prev_sub_scene = 0;
 double tri_x[3];
@@ -45,7 +45,6 @@ Image pass, fail, dead, valve1, valve2, dart1, dart2, dart3, dart4, bulb;
 Image marked,cracked,one,two,three,four,five,six,zero;
 Image toolbar,tool1,tool2,tool3,tool4,tool5,tool6,tool7;
 Image move1, move2, move3, move4, move5, hero_maze, move_img;
-Image hero_run1, hero_run2, hero_jump, cat1,cat2,cat3,cat4, obs1,obs2,obs3,obs4;
 Image main_map,main_map2,world_burn1,world_burn2,world_burn3,world_burn4,world_rain1, world_rain2, world_rain3, dart_a, dart_b;
 FILE *score_ptr, *save_ptr;
 
@@ -128,6 +127,11 @@ bool failed = false;
 //Door Locked Variables (Scene 09 : Level 03)
 Image p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12;
 int pieces[12] = {6,9,2,7,4,11,3,12,1,8,10,5};
+
+//Electrified (Scene 10 : Level 04)
+int current_comb[] = {1,2,3,4,5,6,7,8};
+int correct_comb[] = {5,2,1,4,3,8,6,7};
+char num_to_char[2];
 
 //Lost in a Basement (Scene 11 : Level 05)
 int moves[7] = {0}; //0 null, 1 forward, 2 backward, 3 left, 4 right, 5 loop
@@ -301,17 +305,6 @@ void loadImages()
         case 79: iLoadImage(&move4, "assets/images/effects/right.png"); iScaleImage(&move4, ratio); loader_count++; break;
         case 80: iLoadImage(&move5, "assets/images/effects/loop.png"); iScaleImage(&move5, ratio); loader_count++; break;
         case 81: iLoadImage(&hero_maze, "assets/images/effects/hero_maze.png"); iScaleImage(&hero_maze, ratio); loader_count++; break;
-        case 82: iLoadImage(&hero_run1, "assets/images/effects/hero_run1.png"); iScaleImage(&hero_run1, ratio); loader_count++; break;
-        case 83: iLoadImage(&hero_run2, "assets/images/effects/hero_run2.png"); iScaleImage(&hero_run2, ratio); loader_count++; break;
-        case 84: iLoadImage(&hero_jump, "assets/images/effects/hero_jump.png"); iScaleImage(&hero_jump, ratio); loader_count++; break;
-        case 85: iLoadImage(&cat1, "assets/images/effects/cat1.png"); iScaleImage(&cat1, ratio); loader_count++; break;
-        case 86: iLoadImage(&cat2, "assets/images/effects/cat2.png"); iScaleImage(&cat2, ratio); loader_count++; break;
-        case 87: iLoadImage(&cat3, "assets/images/effects/cat3.png"); iScaleImage(&cat3, ratio); loader_count++; break;
-        case 88: iLoadImage(&cat4, "assets/images/effects/cat4.png"); iScaleImage(&cat4, ratio); loader_count++; break;
-        case 89: iLoadImage(&obs1, "assets/images/effects/box.png"); iScaleImage(&obs1, ratio); loader_count++; break;
-        case 90: iLoadImage(&obs2, "assets/images/effects/drum.png"); iScaleImage(&obs2, ratio); loader_count++; break;
-        case 91: iLoadImage(&obs3, "assets/images/effects/cart.png"); iScaleImage(&obs3, ratio); loader_count++; break;
-        case 92: iLoadImage(&obs4, "assets/images/effects/bush.png"); iScaleImage(&obs4, ratio); loader_count++; break;
         default: load_successful = true;
     }
 }
@@ -788,7 +781,7 @@ void iDraw()
             iFilledRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
             iSetColor(255,255,255);
             iRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
-            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/93*ratio, 40*ratio);
+            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/82*ratio, 40*ratio);
         }
         sound_handle(0);
         break;
@@ -979,7 +972,7 @@ void iDraw()
             break;
         case 2:
             iTextBold(400*ratio, 650*ratio, "Amid the chaos and devastation, a brave figure emerged. Though only a man with no special powers, he", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "braved the storm’s fury to guide stranded villagers to safety and rescue the injured from beneath ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "braved the stormï¿½s fury to guide stranded villagers to safety and rescue the injured from beneath ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 590*ratio, "collapsed homes.  With nothing but courage in his heart, he became the unlikely hero his village ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 560*ratio, "desperately needed. ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 530*ratio, "Hail to our HERO. Hail to", GLUT_BITMAP_TIMES_ROMAN_24);
@@ -1378,6 +1371,7 @@ void iDraw()
         break;
     case 8:
         //Cracked Floor
+        loadImages();
         iShowLoadedImage(0,0,&cf);
         //Hover
         if(win == false && failed == false)
@@ -1444,8 +1438,18 @@ void iDraw()
             }
         }
 
-        if(step_count + marker_count + crack_count == 132) win = true;
-        else if(crack_count == 3) failed = true;
+        win = true;
+        for(int i=0;i<11;i++)
+        {
+            for(int j=0; j<12; j++)
+            {
+                if(tool_map[i][j] == 0 || (tool_map[i][j] == 1 && floor_map[i][j] != -1))
+                {
+                    win = false;
+                    break;
+                }
+            }
+        }
 
         if(win == true)
         {
@@ -1601,6 +1605,32 @@ void iDraw()
         //Electrified
         iShowLoadedImage(0,0,&e);
         sound_handle(5);
+
+        //numbers
+        iSetColor(255,255,255);
+        for(int i=0; i<8; i++)
+        {
+            num_to_char[0] = current_comb[i] + '0';
+            num_to_char[1] = '\0';
+            iText((936+114*i)*ratio, 40*ratio, num_to_char, GLUT_BITMAP_TIMES_ROMAN_24);
+        }
+
+        //hover
+        iSetColor(0,0,0);
+        iSetLineWidth(2);
+        if(sub_focus != 0) iRectangle((918+(sub_focus-1)*114)*ratio, 16*ratio, 50*ratio, 70*ratio);
+
+        //wincheck
+        win = true;
+        for(int i=0; i<8; i++)
+        {
+            if(current_comb[i] != correct_comb[i])
+            {
+                win = false;
+                break;
+            }
+        }
+
 
         if(win == true)
         {
@@ -2108,33 +2138,6 @@ void iDraw()
         iText(500*ratio, 380*ratio, dart_score_s, GLUT_BITMAP_TIMES_ROMAN_24);
         break;
     case 15:
-        if(load_successful == false)
-        {
-            loadImages();
-            iSetColor(170,202,79);
-            iSetLineWidth(4);
-            iFilledRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
-            iSetColor(255,255,255);
-            iRectangle(660*ratio, 120*ratio, 600*ratio, 40*ratio);
-            iFilledRectangle(660*ratio, 120*ratio, 600*loader_count/93*ratio, 40*ratio);
-        }
-        iShowLoadedImage(0,0,&gpc);
-
-        if(anim_counter == 3) anim_counter = 0;
-        else anim_counter++;
-
-        if(anim_counter%2 == 0) iShowLoadedImage(64*ratio, 247*ratio, &hero_run1);
-        else iShowLoadedImage(64*ratio, 247*ratio, &hero_run2);
-
-        if(anim_counter == 0) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat1);
-        else if(anim_counter == 1) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat2);
-        else if(anim_counter == 2) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat3);
-        else if(anim_counter == 3) iShowLoadedImage(cat_x*ratio, 234*ratio, &cat4);
-
-        if(win == false) cat_x--, Sleep(100);
-
-
-
         break;
     case 16:
         sound_handle(3);
@@ -2145,19 +2148,19 @@ void iDraw()
         {
         case 0:
             iTextBold(400*ratio, 650*ratio, "As dawn broke over the ruined village, the distant thump of helicopter blades echoed through the morning ", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 620*ratio, "mist. Our hero stood atop the hill, waving a bright cloth tied to a bamboo pole—the signal he’d prepared ", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 620*ratio, "mist. Our hero stood atop the hill, waving a bright cloth tied to a bamboo poleï¿½the signal heï¿½d prepared ", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 590*ratio, "overnight. The rescue team circled once, then descended into the makeshift clearing. Medics poured out,", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 560*ratio, "bringing supplies, stretchers, and hope", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         case 1:
             iTextBold(400*ratio, 650*ratio, "Villagers cheered, cried, and clung to one another as they were guided to safety. The hero moved among", GLUT_BITMAP_TIMES_ROMAN_24);
             iTextBold(400*ratio, 620*ratio, "them, pointing out the injured, lifting children, and reassuring the fearful. One of the rescuers", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "approached him and asked, “Was it you who called for help?” He nodded, exhausted but steady. “You saved", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 560*ratio, "a village,” the rescuer said.", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "approached him and asked, ï¿½Was it you who called for help?ï¿½ He nodded, exhausted but steady. ï¿½You saved", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 560*ratio, "a village,ï¿½ the rescuer said.", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         case 2:
             iTextBold(400*ratio, 650*ratio, "The hero looked around at the people he had protected.", GLUT_BITMAP_TIMES_ROMAN_24);
-            iTextBold(400*ratio, 590*ratio, "“No,” he replied softly, “we saved each other.”", GLUT_BITMAP_TIMES_ROMAN_24);
+            iTextBold(400*ratio, 590*ratio, "ï¿½No,ï¿½ he replied softly, ï¿½we saved each other.ï¿½", GLUT_BITMAP_TIMES_ROMAN_24);
             break;
         }
         iText(850*ratio, 400*ratio, "Press \"Space\" to continue.", GLUT_BITMAP_HELVETICA_18);
@@ -2304,6 +2307,21 @@ void iMouseMove(int mx, int my)
             else if(mx > 1341*ratio && mx < 1610*ratio) sub_focus = 11;
             else if(mx > 1613*ratio && mx < 1882*ratio) sub_focus = 12;
             else sub_focus = 0;
+        }
+        else sub_focus = 0;
+        break;
+    case 10:
+        if(my > 16*ratio && my < 86*ratio && win == false)
+        {
+            for(int i=0; i<8; i++)
+            {
+                if(mx > (918+114*i)*ratio && mx < (918+50+114*i)*ratio)
+                {
+                    sub_focus = i+1;
+                    break;
+                }
+                else sub_focus = 0;
+            }
         }
         else sub_focus = 0;
         break;
@@ -2469,6 +2487,19 @@ void iMouse(int button, int state, int mx, int my)
                 else prev_focus = 0, focus = 0;
             }
             else focus = 0;
+            break;
+        case 10:
+            if(my > 16*ratio && my < 86*ratio && win == false)
+            {
+                for(int i=0; i<8; i++)
+                {
+                    if(mx > (918+114*i)*ratio && mx < (918+50+114*i)*ratio)
+                    {
+                        current_comb[i] = (current_comb[i] == 8) ? 1 : current_comb[i]+1;
+                        break;
+                    }
+                }
+            }
             break;
         case 11:
             if(my < 538*ratio && my > 458*ratio && win == false)

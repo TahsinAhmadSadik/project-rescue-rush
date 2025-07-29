@@ -5,8 +5,8 @@
 Rescue Rush is an university project. It is a open-world top-down game. You can explore the map and solve soo many interesting puzzles. On your journey, you have to help and rescue several villagers and solve different puzzles to do so. Are you ready?
 
 Download the release version to play without worrying about the codebase:  
-📁[Rescue Rush (Desktop)](https://drive.google.com/file/d/16ZBGpZPLVXfXm-NgDD1NQyyIdkUiaE7x/view?usp=sharing)  
-📁[Rescue Rush (Laptop)](https://drive.google.com/file/d/1nDAkS6cCl_s9a6grUrn8eaXlHs0aFNp5/view?usp=sharing)
+📁[Rescue Rush (Desktop)](https://drive.google.com/file/d/1j2fnMFseiFAuNpHvwZArigRt13fvhPvF/view?usp=sharing)  
+📁[Rescue Rush (Laptop)](https://drive.google.com/file/d/1_7vFm6xYMKopTDlUmesFSSx8aT_Y5Bj5/view?usp=sharing)
 
 **Game Description:**  
 A powerful cyclone struck a remote village late last night, unleashing fierce winds and torrential rains that raged for hours. The storm left behind massive devastation. Amid the ruins, one brave villager rose to the occasion to help save others. This game takes you on a rescue journey through that villager’s perspective. Each person faces unique challenges, and every mission requires solving distinct, thoughtful puzzles to bring them to safety.  

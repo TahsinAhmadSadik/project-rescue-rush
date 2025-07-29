@@ -8,6 +8,8 @@
 #include "iGraphics.h"
 #include "iSound.h"
 
+#define SLEEPTIME 200
+
 bool init = false;
 float ratio = 0.8; //zoomed 0.8, full 1
 int scene = 0;
@@ -119,11 +121,8 @@ int tool_map[11][12] = {
     0,0,0,0,0,0,0,0,0,0,0,0,
     0,0,0,0,0,0,0,0,0,0,0,0
 }; //0 untouched, 1, marked, 2 stepped
-int step_count = 1;
-int marker_count = 0;
 int crack_count = 0;
 bool failed = false;
-bool paused = false;
 
 //Door Locked Variables (Scene 09 : Level 03)
 Image p1,p2,p3,p4,p5,p6,p7,p8,p9,p10,p11,p12;
@@ -1203,7 +1202,7 @@ void iDraw()
             //if(added_score%10 >=0 && added_score%10 <= 9) new_score[7] = added_score%10 + '0', added_score /= 10;
             //iText(900*ratio, 550*ratio, "Score +877", GLUT_BITMAP_TIMES_ROMAN_24);
             if(counter == 0) iPlaySound("assets/sounds/passed.wav", false, sound_volume[16]);
-            if( counter != 600) counter++;
+            if( counter != SLEEPTIME) counter++;
             else sub_scene = 0, counter = 0;
             break;
         case 11:
@@ -1225,7 +1224,7 @@ void iDraw()
         case 12:
             iShowLoadedImage(350*ratio, 600*ratio, &fail);
             iSetColor(0,0,0);
-            if( counter != 600) counter++;
+            if( counter != SLEEPTIME) counter++;
             else sub_scene = 0, counter = 0;
             break;
         case 13:
@@ -1329,7 +1328,7 @@ void iDraw()
         //winning
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1345,7 +1344,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
             }
         }
         else
@@ -1391,9 +1390,9 @@ void iDraw()
         //Click Handle
         if(win == false && failed == false)
         {
-            if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == true && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 2, (floor_map[(focus-1)/12][(focus-1)%12] == -1) ? iPlaySound("assets/sounds/crack.wav", false, sound_volume[21]),crack_count++ : iPlaySound("assets/sounds/step.wav", false, sound_volume[18]), step_count++;
-            else if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 1, iPlaySound("assets/sounds/mark.wav", false, sound_volume[14]), marker_count++;
-            else if(tool_map[(focus-1)/12][(focus-1)%12] == 1 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 0, iPlaySound("assets/sounds/mark.wav", false, sound_volume[14]), marker_count--;
+            if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == true && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 2, (floor_map[(focus-1)/12][(focus-1)%12] == -1) ? iPlaySound("assets/sounds/crack.wav", false, sound_volume[21]) : iPlaySound("assets/sounds/step.wav", false, sound_volume[18]);
+            else if(tool_map[(focus-1)/12][(focus-1)%12] == 0 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 1, iPlaySound("assets/sounds/mark.wav", false, sound_volume[14]);
+            else if(tool_map[(focus-1)/12][(focus-1)%12] == 1 && tool == false && focus != 0) tool_map[(focus-1)/12][(focus-1)%12] = 0, iPlaySound("assets/sounds/mark.wav", false, sound_volume[14]);
         }
         focus = 0;
 
@@ -1438,7 +1437,9 @@ void iDraw()
             }
         }
 
+
         win = true;
+        crack_count = 0;
         for(int i=0;i<11;i++)
         {
             for(int j=0; j<12; j++)
@@ -1446,16 +1447,16 @@ void iDraw()
                 if(tool_map[i][j] == 0 || (tool_map[i][j] == 1 && floor_map[i][j] != -1))
                 {
                     win = false;
-                    break;
                 }
+                if(tool_map[i][j] == 2 && floor_map[i][j] == -1) crack_count++;
             }
         }
 
-        if(paused == true) win = true;
+        if(crack_count >= 3) win = false, failed = true;
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1471,12 +1472,12 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
             }
         }
         else if(failed == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1484,8 +1485,6 @@ void iDraw()
                 scene = 6;
                 sub_scene = 12;
                 failed = false;
-                step_count = 1;
-                marker_count = 0;
                 crack_count = 0;
                 tool = false;
                 //level_timer = level_timer_list[current_level-1];
@@ -1493,7 +1492,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
                 for(int i=0; i<132; i++) tool_map[i/12][i%12] = 0;
                 tool_map[6][6] = 2;
             }
@@ -1561,7 +1560,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1577,7 +1576,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
             }
         }
         else
@@ -1636,7 +1635,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1652,7 +1651,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
             }
         }
         else
@@ -1711,7 +1710,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1727,7 +1726,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
             }
         }
         else
@@ -1890,7 +1889,7 @@ void iDraw()
 
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -1906,7 +1905,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                win_counter = SLEEPTIME;
             }
         }
         else
@@ -2003,7 +2002,7 @@ void iDraw()
         if(r1+b1-b2 == 13) win = true;
         if(win == true)
         {
-            if(win_counter == 300)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
+            if(win_counter == SLEEPTIME)win_counter--, iPlaySound("assets/sounds/win.wav", false, sound_volume[20]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -2016,6 +2015,7 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
+                win_counter = SLEEPTIME;
                 //Game Finish
             }
         }
@@ -2092,7 +2092,7 @@ void iDraw()
         }
         else
         {
-            if(win_counter == 300)win_counter--, (dart_score >= 250) ? iPlaySound("assets/sounds/win.wav", false, sound_volume[20]) : iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
+            if(win_counter == SLEEPTIME)win_counter--, (dart_score >= 250) ? iPlaySound("assets/sounds/win.wav", false, sound_volume[20]) : iPlaySound("assets/sounds/fail.wav", false, sound_volume[10]);
             else if(win_counter != 0) win_counter--;
             else
             {
@@ -2117,7 +2117,9 @@ void iDraw()
                 focus = 0;
                 sub_focus = 0;
                 prev_focus = 0;
-                win_counter = 300;
+                aim_x_dir = 1;
+                aim_y_dir = 1;
+                win_counter = SLEEPTIME;
             }
         }
 
@@ -2133,11 +2135,11 @@ void iDraw()
         dart_score_s[2] = dart_score%10 + '0';
         dart_score_s[1] = (dart_score/10)%10 + '0';
         dart_score_s[0] = (dart_score/100)%10 + '0';
-        iText(224*ratio, 380*ratio, dart_score_s, GLUT_BITMAP_TIMES_ROMAN_24);
+        iText(224*ratio, 235*ratio, dart_score_s, GLUT_BITMAP_TIMES_ROMAN_24);
         dart_score_s[2] = merchant_score%10 + '0';
         dart_score_s[1] = (merchant_score/10)%10 + '0';
         dart_score_s[0] = (merchant_score/100)%10 + '0';
-        iText(500*ratio, 380*ratio, dart_score_s, GLUT_BITMAP_TIMES_ROMAN_24);
+        iText(500*ratio, 235*ratio, dart_score_s, GLUT_BITMAP_TIMES_ROMAN_24);
         break;
     case 15:
         break;
@@ -2673,10 +2675,20 @@ void iKeyboard(unsigned char key)
         else if(key == 'm' && bonus_one == true && (sub_scene == 0 || sub_scene == 13)) (sub_scene == 0) ? sub_scene = 13 : sub_scene = 0, iPlaySound("assets/sounds/paper.wav", false, sound_volume[15]);
         break;
     case 7:
-        if(key == 'p') win = true;;
+        if(key == 'p') win = true;
         break;
     case 8:
-        if(key == 'p') paused = true;
+        if(key == 'p')
+        {
+            for(int i=0; i<11; i++)
+            {
+                for(int j=0; j<12; j++)
+                {
+                    if(floor_map[i][j] == -1) tool_map[i][j] = 1;
+                    else tool_map[i][j] = 2;
+                }
+            }
+        }
         if(key == ' ') tool = (tool == false) ? true : false;
         break;
     case 9:
